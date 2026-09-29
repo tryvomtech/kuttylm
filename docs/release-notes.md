@@ -5,6 +5,10 @@ Your chats stay on your computer. It works offline once a model is downloaded.
 KuttyLM is different: it is **lightweight**, it has **no commands — only buttons**, and it is
 **made for people who are not technical**. It even tells you which models will run well on your computer.
 
+## What's new in 0.2.1
+
+- The version number is shown at the bottom of the menu. Click it to see what is new.
+
 ## What's new in 0.2.0
 
 - **Chat history:** your chats are saved on your computer and listed by date (Today, Yesterday,

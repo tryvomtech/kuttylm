@@ -1,4 +1,5 @@
 // All calls to the Rust backend go through this file.
+import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type {
@@ -17,6 +18,11 @@ import type {
   SavedChat,
   Settings,
 } from "./types";
+
+/** The app version, for example "0.2.1" (from tauri.conf.json). */
+export function getAppVersion(): Promise<string> {
+  return getVersion();
+}
 
 export function getDeviceInfo(): Promise<DeviceInfo> {
   return invoke<DeviceInfo>("get_device_info");

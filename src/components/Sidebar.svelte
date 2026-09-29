@@ -1,7 +1,19 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+  import { openUrl } from "@tauri-apps/plugin-opener";
   import Icon, { type IconName } from "./Icon.svelte";
+  import { getAppVersion } from "../lib/api";
   import { engine } from "../lib/engine";
   import { currentScreen, theme, type Screen, type Theme } from "../lib/stores";
+
+  const RELEASES = "https://github.com/tryvomtech/kuttylm/releases";
+  let version = $state("");
+
+  onMount(() => {
+    getAppVersion()
+      .then((v) => (version = v))
+      .catch(() => {});
+  });
 
   const items: { id: Screen; label: string; icon: IconName }[] = [
     { id: "home", label: "My computer", icon: "home" },
@@ -62,6 +74,16 @@
     <Icon name={themeIcon[$theme]} />
     <span>{themeLabel[$theme]}</span>
   </button>
+
+  {#if version}
+    <button
+      class="version"
+      onclick={() => void openUrl(`${RELEASES}/tag/v${version}`).catch(() => {})}
+      title="See what is new in this version"
+    >
+      KuttyLM {version}
+    </button>
+  {/if}
 </nav>
 
 <style>
@@ -117,6 +139,22 @@
     background: var(--accent-soft);
     color: var(--accent);
     font-weight: 600;
+  }
+
+  .version {
+    align-self: flex-start;
+    margin: 2px 0 0 10px;
+    padding: 2px 0;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    opacity: 0.8;
+  }
+
+  .version:hover {
+    opacity: 1;
+    text-decoration: underline;
   }
 
   .theme {
