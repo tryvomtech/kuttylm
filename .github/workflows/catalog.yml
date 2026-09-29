@@ -1,0 +1,22 @@
+# Checks the "Picked for you" list (catalog/models.json) every time it changes.
+# The app reads this file from the main branch, so a broken list would reach all users.
+# Tip: change the list in a pull request; merge only when this check is green.
+name: Check model list
+
+on:
+  push:
+    paths: ["catalog/models.json", "scripts/check-catalog.py"]
+  pull_request:
+    paths: ["catalog/models.json", "scripts/check-catalog.py"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check the list against Hugging Face
+        run: python3 scripts/check-catalog.py

@@ -67,11 +67,11 @@ pub fn parse(body: &str) -> Result<ParsedCatalog, ParseError> {
 mod tests {
     use super::*;
 
-    const MOCK: &str = include_str!("../../resources/models.mock.json");
+    const LIST: &str = include_str!("../../../catalog/models.json");
 
     #[test]
-    fn mock_file_is_valid() {
-        let parsed = parse(MOCK).unwrap();
+    fn catalog_file_is_valid() {
+        let parsed = parse(LIST).unwrap();
         assert_eq!(parsed.skipped, 0);
         assert!(parsed.models.len() >= 5);
     }

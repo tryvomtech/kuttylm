@@ -49,12 +49,15 @@ export interface ModelListItem {
   fit: FitLabel;
 }
 
-export type ListSource = "api" | "cache" | "mock";
+/** api = online list, cache = last saved copy, builtin = the list inside the app. */
+export type ListSource = "api" | "cache" | "builtin";
 
 export interface ModelList {
   models: ModelListItem[];
   source: ListSource;
   fetched_at: number | null;
+  /** The online list could not be loaded; this is an older or built-in list. */
+  offline: boolean;
   needs_update: boolean;
   skipped: number;
 }

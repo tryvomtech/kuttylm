@@ -161,10 +161,11 @@ listens on a random port on `127.0.0.1` with a hidden key that only KuttyLM know
 
 ## The model list API
 
-Set the real URL in `src-tauri/src/config.rs` (`MODELS_API_URL`). While it is empty, the app
-uses `src-tauri/resources/models.mock.json`. The format (version 1) is described in
-[docs/model-list-api.md](model-list-api.md) and matches the mock file. HTTPS is required
-(plain HTTP only for `localhost`, for testing).
+The "Picked for you" list is `catalog/models.json`. The app reads it from GitHub
+(`MODELS_API_URL` in `src-tauri/src/config.rs`) and also has it built in as an offline fallback.
+Change the list by editing that file; `scripts/check-catalog.py` (also run by
+`.github/workflows/catalog.yml`) checks it against Hugging Face. Details and the format:
+[model-list-api.md](model-list-api.md).
 
 ## Settings for developers (environment variables)
 
@@ -194,9 +195,10 @@ src-tauri/src/
   engine/                starts and stops llama-server
   settings.rs            user settings
 scripts/                 dev.sh, fetch-llama-server.sh (Ubuntu), fetch-llama-server.ps1 (Windows),
-                         fetch-llama-server-macos.sh (macOS)
-docs/                    model list API format, release notes
-.github/workflows/       release.yml (tagged releases), build.yml (test builds)
+                         fetch-llama-server-macos.sh (macOS), check-catalog.py (list check)
+docs/                    developer guide, model list format, release notes, screenshots
+catalog/models.json      the "Picked for you" list (read online by the app, and built in)
+.github/workflows/       release.yml (tagged releases), build.yml (test builds), catalog.yml (list check)
 ```
 
 ## Troubleshooting

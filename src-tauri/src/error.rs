@@ -6,12 +6,6 @@ use crate::format::human_bytes;
 /// The `Display` text is a friendly message that the UI shows as-is.
 #[derive(Debug, thiserror::Error)]
 pub enum AppError {
-    #[error("Could not load the model list. Check your internet connection and try again.")]
-    ModelListUnavailable,
-
-    #[error("This version of KuttyLM is too old to read the model list. Please update the app.")]
-    AppTooOld,
-
     #[error("This model is not in the list any more. Refresh the list and try again.")]
     UnknownModel,
 

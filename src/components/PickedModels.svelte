@@ -81,6 +81,11 @@
         <strong>Offline – list from {formatDateTime(list.fetched_at)}</strong>
         <span>Could not reach the online list. You see the last saved copy.</span>
       </Notice>
+    {:else if list.source === "builtin" && list.offline}
+      <Notice kind="warn">
+        <strong>Offline</strong>
+        <span>Could not reach the online list. You see the list that came with KuttyLM.</span>
+      </Notice>
     {/if}
 
     <div class="tools">

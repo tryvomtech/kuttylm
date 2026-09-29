@@ -5,6 +5,12 @@ Your chats stay on your computer. It works offline once a model is downloaded.
 KuttyLM is different: it is **lightweight**, it has **no commands — only buttons**, and it is
 **made for people who are not technical**. It even tells you which models will run well on your computer.
 
+## What's new in 0.1.1
+
+- The **Picked for you** list now updates online. New models can appear without a new app version.
+- Works without internet on the first start: KuttyLM then shows the list that came with it.
+- Folders are shown shorter (for example `~/.local/share/kuttylm/models`).
+
 ## Which file do I need?
 
 Scroll down to **Assets** and download **one** file:

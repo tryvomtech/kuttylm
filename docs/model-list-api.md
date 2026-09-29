@@ -1,15 +1,42 @@
 # Model list API (format version 1)
 
-KuttyLM's "Picked for you" list comes from a small JSON API. You can run your own.
+KuttyLM's "Picked for you" list is the file [`catalog/models.json`](../catalog/models.json) in this
+repository. The app reads it from GitHub:
 
-- Set the URL in `src-tauri/src/config.rs` (`MODELS_API_URL`). While it is empty, the app uses the
-  built-in sample list [`src-tauri/resources/models.mock.json`](../src-tauri/resources/models.mock.json),
-  which is a complete, working example of this format.
-- For testing, the environment variable `KUTTYLM_MODELS_API_URL` overrides the URL.
+```
+https://raw.githubusercontent.com/tryvomtech/kuttylm/main/catalog/models.json
+```
+
+The same file is also built into the app, as it was on the day of the build.
+
+## How to change the list
+
+1. Edit `catalog/models.json` (best in a pull request).
+2. The **Check model list** workflow (`.github/workflows/catalog.yml`) runs
+   `scripts/check-catalog.py`. It checks the format and compares every file with Hugging Face
+   (the model is public, the file exists at the given revision, and the size and sha256 match).
+   Run it yourself first with `python3 scripts/check-catalog.py`.
+3. When the check is green, merge into `main`. Users see the new list the next time they open
+   **Find models** (GitHub's file cache can add up to about 5 minutes). No new app release is needed.
+
+To find the sizes and sha256 values of a model's files, open
+`https://huggingface.co/api/models/<owner>/<repo>/tree/<commit>`; `size` and `lfs.oid` are the
+values you need. Use the commit id (`sha` from `https://huggingface.co/api/models/<owner>/<repo>`)
+as `revision`.
+
+## Where the app looks
+
+1. The online list (`MODELS_API_URL` in `src-tauri/src/config.rs`). The environment variable
+   `KUTTYLM_MODELS_API_URL` overrides it for testing. An empty URL means "built-in list only".
+2. If that fails: the last list it saved (shown with "Offline – list from <date>").
+3. If there is none (for example, the first start without internet): the list built into the app.
+
+You can also host the file somewhere else, or run your own API that returns the same format:
+
 - HTTPS is required. Plain HTTP is allowed only for `localhost` / `127.0.0.1` (testing).
 - The API is public: the app sends no key. It waits 10 seconds at most.
 
-## Response
+## Format
 
 `GET <MODELS_API_URL>` must answer `200` with JSON like this:
 

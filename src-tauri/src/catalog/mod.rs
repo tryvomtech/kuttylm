@@ -1,4 +1,7 @@
-//! The model list: from the API (with an offline cache) or from the built-in mock.
+//! The "Picked for you" model list.
+//!
+//! Order: the online list (`config::MODELS_API_URL`, with an offline cache), then the
+//! last saved copy, then the list built into the app (`catalog/models.json` at build time).
 
 mod cache;
 mod fetch;
@@ -18,7 +21,8 @@ use parse::{parse, ParseError, ParsedCatalog};
 use crate::util::now_secs;
 use types::CatalogModel;
 
-const MOCK_BODY: &str = include_str!("../../resources/models.mock.json");
+/// The same file as the online list, as it was when the app was built.
+const BUILT_IN_BODY: &str = include_str!("../../../catalog/models.json");
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -27,8 +31,9 @@ pub enum ListSource {
     Api,
     /// The API failed; this is the last saved list.
     Cache,
-    /// No API URL is set; this is the built-in sample list.
-    Mock,
+    /// The list built into the app (no URL set, or nothing online and nothing saved).
+    #[serde(rename = "builtin")]
+    BuiltIn,
 }
 
 #[derive(Debug, Serialize)]
@@ -43,8 +48,10 @@ pub struct ModelListItem {
 pub struct ModelList {
     pub models: Vec<ModelListItem>,
     pub source: ListSource,
-    /// Unix seconds of the fetch this list comes from (not set for the mock).
+    /// Unix seconds of the fetch this list comes from (not set for the built-in list).
     pub fetched_at: Option<u64>,
+    /// The online list could not be loaded; this is an older or built-in list.
+    pub offline: bool,
     /// The API sent a newer format. The user should update the app.
     pub needs_update: bool,
     /// Broken entries that were left out.
@@ -79,13 +86,7 @@ async fn load_list() -> AppResult<ModelList> {
     let device = device::detect_async().await?;
 
     let url = crate::config::models_api_url();
-    let loaded = if url.is_empty() {
-        let parsed = parse(MOCK_BODY)
-            .map_err(|e| AppError::Internal(format!("built-in list is broken: {e:?}")))?;
-        Loaded { parsed, source: ListSource::Mock, fetched_at: None, needs_update: false }
-    } else {
-        load_from_api(&url).await?
-    };
+    let loaded = if url.is_empty() { built_in(false, false)? } else { load_from_api(&url).await? };
 
     Ok(build_list(loaded, &device))
 }
@@ -95,6 +96,13 @@ struct Loaded {
     source: ListSource,
     fetched_at: Option<u64>,
     needs_update: bool,
+    offline: bool,
+}
+
+fn built_in(offline: bool, needs_update: bool) -> AppResult<Loaded> {
+    let parsed =
+        parse(BUILT_IN_BODY).map_err(|e| AppError::Internal(format!("built-in list is broken: {e:?}")))?;
+    Ok(Loaded { parsed, source: ListSource::BuiltIn, fetched_at: None, needs_update, offline })
 }
 
 async fn load_from_api(url: &str) -> AppResult<Loaded> {
@@ -114,6 +122,7 @@ async fn load_from_api(url: &str) -> AppResult<Loaded> {
                     source: ListSource::Api,
                     fetched_at: Some(fetched_at),
                     needs_update: false,
+                    offline: false,
                 });
             }
             Err(ParseError::TooNew(v)) => {
@@ -132,6 +141,7 @@ async fn load_from_api(url: &str) -> AppResult<Loaded> {
                         source: ListSource::Api,
                         fetched_at: Some(c.fetched_at),
                         needs_update: false,
+                        offline: false,
                     });
                 }
             }
@@ -147,10 +157,12 @@ async fn load_from_api(url: &str) -> AppResult<Loaded> {
                 source: ListSource::Cache,
                 fetched_at: Some(c.fetched_at),
                 needs_update,
+                offline: true,
             });
         }
     }
-    Err(if needs_update { AppError::AppTooOld } else { AppError::ModelListUnavailable })
+    // Nothing online and nothing saved (for example, the first start without internet).
+    built_in(true, needs_update)
 }
 
 fn build_list(loaded: Loaded, device: &DeviceInfo) -> ModelList {
@@ -170,6 +182,7 @@ fn build_list(loaded: Loaded, device: &DeviceInfo) -> ModelList {
         models,
         source: loaded.source,
         fetched_at: loaded.fetched_at,
+        offline: loaded.offline,
         needs_update: loaded.needs_update,
         skipped: loaded.parsed.skipped,
     }
@@ -192,8 +205,8 @@ mod tests {
         match tauri::async_runtime::block_on(super::load_list()) {
             Ok(list) => {
                 println!(
-                    "source={:?} fetched_at={:?} needs_update={} skipped={}",
-                    list.source, list.fetched_at, list.needs_update, list.skipped
+                    "source={:?} offline={} fetched_at={:?} needs_update={} skipped={}",
+                    list.source, list.offline, list.fetched_at, list.needs_update, list.skipped
                 );
                 for m in list.models {
                     println!("{:<28} {:>6.2} GB  {:?}", m.model.id, m.size_bytes as f64 / 1e9, m.fit);

@@ -1,13 +1,11 @@
 //! Build-time settings that a developer may change.
 
-/// URL of the model list API.
-///
-/// Empty → the app uses the built-in mock list (`resources/models.mock.json`).
-/// Set it to the real API when it is ready, for example
-/// `"https://api.example.com/models"`.
+/// URL of the "Picked for you" model list: `catalog/models.json` in the GitHub repository.
+/// Edit that file to change the list for every user, with no new app release.
+/// Empty → the app uses only the list built into it.
 ///
 /// For testing, the environment variable `KUTTYLM_MODELS_API_URL` overrides it.
-pub const MODELS_API_URL: &str = "";
+pub const MODELS_API_URL: &str = "https://raw.githubusercontent.com/tryvomtech/kuttylm/main/catalog/models.json";
 
 /// How long to wait for the model list API.
 pub const MODELS_API_TIMEOUT_SECS: u64 = 10;

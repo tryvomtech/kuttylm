@@ -323,7 +323,7 @@ async fn cancel_stops_quickly() {
 fn real_download_smallest_model() {
     const ID: &str = "smollm2-135m-instruct-q4km";
     tauri::async_runtime::block_on(async {
-        let body = include_str!("../../resources/models.mock.json");
+        let body = include_str!("../../../catalog/models.json");
         let model = crate::catalog::parse_for_tests(body)
             .into_iter()
             .find(|m| m.id == ID)
