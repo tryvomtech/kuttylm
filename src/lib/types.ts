@@ -130,6 +130,7 @@ export interface Settings {
   models_dir: string | null;
   gpu: GpuSetting;
   gpu_layers: number;
+  save_chats: boolean;
 }
 
 export interface AppPaths {
@@ -172,4 +173,37 @@ export interface HfRepoDetail {
   vision: boolean;
   variants: HfVariant[];
   has_folder_files: boolean;
+}
+
+// ---- Saved chats (see src-tauri/src/chats.rs) ----
+
+export interface StoredMessage {
+  role: "user" | "assistant" | "notice";
+  content: string;
+  reasoning?: string | null;
+  model_name?: string | null;
+  tokens_per_second?: number | null;
+  stopped?: boolean;
+  cut?: boolean;
+}
+
+export type TitleBy = "question" | "ai" | "user";
+
+export interface SavedChat {
+  id: string;
+  title: string;
+  title_by: TitleBy;
+  created_at: number;
+  updated_at: number;
+  model_id: string | null;
+  model_name: string | null;
+  messages: StoredMessage[];
+}
+
+export interface ChatSummary {
+  id: string;
+  title: string;
+  created_at: number;
+  updated_at: number;
+  model_name: string | null;
 }

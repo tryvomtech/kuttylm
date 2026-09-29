@@ -12,7 +12,11 @@
     | "refresh"
     | "memory"
     | "cpu"
-    | "gpu";
+    | "gpu"
+    | "panel"
+    | "plus"
+    | "edit"
+    | "trash";
 </script>
 
 <script lang="ts">
@@ -59,5 +63,13 @@
   {:else if name === "gpu"}
     <rect x="2" y="6" width="20" height="11" rx="1.5" /><circle cx="8" cy="11.5" r="2.5" />
     <circle cx="16" cy="11.5" r="2.5" /><path d="M5 17v3" />
+  {:else if name === "panel"}
+    <rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16" />
+  {:else if name === "plus"}
+    <path d="M12 5v14M5 12h14" />
+  {:else if name === "edit"}
+    <path d="M4 20h4L19 9l-4-4L4 16v4Z" /><path d="m13.5 6.5 4 4" />
+  {:else if name === "trash"}
+    <path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M6 7l1 13h10l1-13" />
   {/if}
 </svg>

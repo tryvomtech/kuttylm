@@ -1,6 +1,6 @@
 [package]
 name = "kuttylm"
-version = "0.1.2"
+version = "0.2.0"
 description = "Run local GGUF language models with a simple desktop app"
 authors = ["Tryvom"]
 license = "MIT"
@@ -18,6 +18,7 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sysinfo = { version = "0.39", default-features = false, features = ["system", "disk"] }

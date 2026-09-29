@@ -65,3 +65,31 @@ test("wrong key gives a clear message", { skip: !url }, async () => {
     /did not accept the app's key/,
   );
 });
+
+import { cleanTitle, titleFromQuestion, aiTitle } from "./chat.ts";
+
+test("titles are cleaned", () => {
+  assert.equal(cleanTitle('Title: "Friendly Team Greeting".'), "Friendly Team Greeting");
+  assert.equal(cleanTitle("**Sleep tips**\n\nmore text"), "Sleep tips");
+  assert.equal(cleanTitle("   "), null);
+  assert.equal(cleanTitle("Sure! Here is a very long answer that goes on and on without being a title at all"), null);
+  assert.equal(cleanTitle("python list sorting"), "Python list sorting");
+  assert.equal(cleanTitle("2. Try to go to bed 75 minutes earlier each night."), null);
+  assert.equal(cleanTitle("Fruit: Apple, Orange, Grapefruit, Lemon, Blueberry, Mango"), null);
+  assert.equal(cleanTitle("Fruits and colours"), "Fruits and colours");
+});
+
+test("fallback title from the question", () => {
+  assert.equal(titleFromQuestion("how do I sort a list in python?"), "How do I sort a list in python");
+  assert.equal(titleFromQuestion("Write a short, friendly good morning message for my team."), "Write a short, friendly good morning message");
+  assert.equal(titleFromQuestion("   "), "New chat");
+});
+
+test("real AI title from llama-server", { skip: !url }, async () => {
+  const title = await aiTitle({
+    baseUrl: url!,
+    apiKey: process.env.KUTTYLM_TEST_CHAT_KEY ?? null,
+    question: "Give me three simple tips to sleep better.",
+  });
+  console.log(`AI title: ${JSON.stringify(title)}`);
+});

@@ -1,7 +1,7 @@
 {
   "name": "kuttylm",
   "private": true,
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Run local AI models (GGUF) on your own computer.",
   "license": "MIT",
   "author": "Tryvom",
@@ -21,7 +21,8 @@
     "test:ui": "node --experimental-strip-types --test src/lib/*.test.ts"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2.11.1"
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-opener": "^2.6.0"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.3.1",

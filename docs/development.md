@@ -141,6 +141,7 @@ Chat tests against a running engine:
 | Models (one folder per model; can be changed in Settings) | `~/.local/share/kuttylm/models/` | `%LOCALAPPDATA%\kuttylm\models\` | `~/Library/Application Support/kuttylm/models/` |
 | Settings | `~/.config/kuttylm/settings.json` | `%APPDATA%\kuttylm\settings.json` | `~/Library/Application Support/kuttylm/settings.json` |
 | Offline copy of the model list | `~/.cache/kuttylm/models.json` | `%LOCALAPPDATA%\kuttylm\models.json` | `~/Library/Caches/kuttylm/models.json` |
+| Saved chats (one file per chat) | `~/.local/share/kuttylm/chats/` | `%LOCALAPPDATA%\kuttylm\chats\` | `~/Library/Application Support/kuttylm/chats/` |
 
 A model folder has the GGUF file(s), `download.json` while the download is not finished,
 and `model.json` when it is complete and checked. Unfinished files end in `.part`.

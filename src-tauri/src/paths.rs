@@ -52,6 +52,11 @@ pub fn expand_home(text: &str) -> PathBuf {
     }
 }
 
+/// Saved chats, one file per chat.
+pub fn chats_dir() -> PathBuf {
+    data_dir().join("chats")
+}
+
 pub fn default_models_dir() -> PathBuf {
     data_dir().join("models")
 }

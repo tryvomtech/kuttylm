@@ -8,11 +8,13 @@
   import Settings from "./screens/Settings.svelte";
   import { startDownloadEvents } from "./lib/downloads";
   import { startEngineEvents } from "./lib/engine";
+  import { refreshChatList } from "./lib/chat-session";
   import { currentScreen } from "./lib/stores";
 
   onMount(() => {
     startDownloadEvents();
     startEngineEvents();
+    void refreshChatList();
   });
 </script>
 

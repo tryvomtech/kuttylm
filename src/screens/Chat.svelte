@@ -1,9 +1,41 @@
 <script lang="ts">
-  import { tick } from "svelte";
+  import { onMount, tick } from "svelte";
+  import ChatHistory from "../components/ChatHistory.svelte";
+  import Icon from "../components/Icon.svelte";
+  import Markdown from "../components/Markdown.svelte";
   import MessageText from "../components/MessageText.svelte";
-  import { busy, entries, newChat, retry, send, stop } from "../lib/chat-session";
+  import { getSettings } from "../lib/api";
+  import { busy, currentChat, entries, newChat, refreshChatList, retry, send, stop } from "../lib/chat-session";
   import { engine } from "../lib/engine";
   import { currentScreen } from "../lib/stores";
+
+  const PANEL_KEY = "kuttylm.chatHistoryOpen";
+  let showHistory = $state(readPanel());
+  let saving = $state(true);
+
+  function readPanel(): boolean {
+    try {
+      return localStorage.getItem(PANEL_KEY) !== "false";
+    } catch {
+      return true;
+    }
+  }
+
+  function togglePanel() {
+    showHistory = !showHistory;
+    try {
+      localStorage.setItem(PANEL_KEY, String(showHistory));
+    } catch {
+      // Only a comfort setting.
+    }
+  }
+
+  onMount(() => {
+    void refreshChatList();
+    getSettings()
+      .then((s) => (saving = s.save_chats))
+      .catch(() => {});
+  });
 
   let draft = $state("");
   let list: HTMLElement | undefined = $state();
@@ -30,7 +62,8 @@
     void draft;
     if (!input) return;
     input.style.height = "auto";
-    input.style.height = `${input.scrollHeight}px`;
+    // + the top and bottom border (the box uses border-box sizing), so no scroll bar appears.
+    input.style.height = `${input.scrollHeight + input.offsetHeight - input.clientHeight}px`;
   });
 
   function submit() {
@@ -48,17 +81,22 @@
     }
   }
 
-  function startNew() {
-    newChat();
+  async function startNew() {
+    await newChat();
     draft = "";
     input?.focus();
   }
 </script>
 
+<div class="screen">
+{#if showHistory}<ChatHistory {saving} />{/if}
 <div class="chat">
   <header>
-    <div>
-      <h1>Chat</h1>
+    <button class="btn icon-btn" onclick={togglePanel} aria-pressed={showHistory} title={showHistory ? "Hide chat history" : "Show chat history"}>
+      <Icon name="panel" size={18} />
+    </button>
+    <div class="head-text">
+      <h1 title={$currentChat?.title}>{$currentChat?.title ?? "New chat"}</h1>
       <p class="muted">
         {#if running}
           Talking to <strong>{$engine.model_name}</strong>
@@ -69,7 +107,9 @@
         {/if}
       </p>
     </div>
-    <button class="btn" onclick={startNew} disabled={$entries.length === 0}>New chat</button>
+    <button class="btn" onclick={startNew} disabled={$entries.length === 0 && !$currentChat}>
+      <Icon name="plus" size={16} /> New chat
+    </button>
   </header>
 
   <div class="messages" bind:this={list} onscroll={onScroll}>
@@ -103,7 +143,7 @@
               </details>
             {/if}
             {#if e.content}
-              <MessageText text={e.content} />
+              <Markdown text={e.content} />
             {:else if e.pending && !e.reasoning}
               <span class="typing" aria-label="The model is writing"><i></i><i></i><i></i></span>
             {/if}
@@ -148,26 +188,46 @@
     {/if}
   </form>
 </div>
+</div>
 
 <style>
+  .screen {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+  }
+
   .chat {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-width: 0;
     height: 100%;
   }
 
   header {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 24px 32px 12px;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 32px 12px 16px;
     border-bottom: 1px solid var(--border);
   }
 
+  .head-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .icon-btn {
+    padding: 7px;
+  }
+
   h1 {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     margin: 0 0 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   header p {

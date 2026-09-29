@@ -1,4 +1,5 @@
 mod catalog;
+mod chats;
 mod config;
 mod device;
 mod disk;
@@ -20,6 +21,8 @@ use tauri::{Manager, RunEvent};
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let app = tauri::Builder::default()
+        // Opens links from chat answers in the normal web browser.
+        .plugin(tauri_plugin_opener::init())
         .manage(catalog::CatalogState::default())
         .manage(download::DownloadManager::default())
         .manage(engine::Engine::default())
@@ -39,6 +42,11 @@ pub fn run() {
             settings::save_settings,
             settings::get_network_info,
             settings::get_app_paths,
+            chats::list_chats,
+            chats::get_chat,
+            chats::save_chat,
+            chats::delete_chat,
+            chats::delete_all_chats,
             hf::hf_search,
             hf::hf_repo_files,
         ])

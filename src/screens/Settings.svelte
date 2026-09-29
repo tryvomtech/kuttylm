@@ -1,10 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import Card from "../components/Card.svelte";
+  import ConfirmDialog from "../components/ConfirmDialog.svelte";
   import CopyText from "../components/CopyText.svelte";
   import Notice from "../components/Notice.svelte";
   import Switch from "../components/Switch.svelte";
   import { errorText, getAppPaths, getNetworkInfo, getSettings, saveSettings, startModel } from "../lib/api";
+  import { chatList, removeAllChats, setChatSaving } from "../lib/chat-session";
   import { libraryVersion } from "../lib/downloads";
   import { engine } from "../lib/engine";
   import type { GpuSetting, Settings } from "../lib/types";
@@ -59,6 +61,19 @@
     showKey = true;
   }
 
+  let confirmDeleteChats = $state(false);
+  let chatsMessage = $state<string | null>(null);
+
+  async function deleteChats() {
+    confirmDeleteChats = false;
+    try {
+      await removeAllChats();
+      chatsMessage = "All chats were deleted.";
+    } catch (err) {
+      error = errorText(err);
+    }
+  }
+
   async function save() {
     if (!form || !saved) return;
     saving = true;
@@ -70,6 +85,7 @@
       form = { ...saved };
       message = "Settings saved.";
       if (folderChanged) libraryVersion.update((v) => v + 1);
+      setChatSaving(saved.save_chats);
     } catch (err) {
       error = errorText(err);
     } finally {
@@ -213,6 +229,30 @@
           </span>
         </div>
       </Card>
+
+      <Card title="Chat history">
+        <div class="fields">
+          <Switch
+            bind:checked={form.save_chats}
+            label="Save chat history"
+            help="Keeps your chats on this computer, so you can open them again later. They are never sent anywhere."
+          />
+          <div class="row">
+            <button
+              type="button"
+              class="btn"
+              disabled={$chatList.length === 0}
+              onclick={() => {
+                chatsMessage = null;
+                confirmDeleteChats = true;
+              }}
+            >
+              Delete all chats
+            </button>
+            {#if chatsMessage}<span class="saved">{chatsMessage}</span>{/if}
+          </div>
+        </div>
+      </Card>
     </div>
 
     {#if error}
@@ -232,6 +272,16 @@
     <p class="muted">Loading…</p>
   {/if}
 </div>
+
+<ConfirmDialog
+  open={confirmDeleteChats}
+  title="Delete all chats?"
+  message="All saved chats will be removed from this computer. This cannot be undone."
+  confirmLabel="Delete all"
+  danger
+  onconfirm={deleteChats}
+  oncancel={() => (confirmDeleteChats = false)}
+/>
 
 <style>
   .page {

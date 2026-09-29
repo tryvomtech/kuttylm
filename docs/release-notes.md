@@ -5,12 +5,14 @@ Your chats stay on your computer. It works offline once a model is downloaded.
 KuttyLM is different: it is **lightweight**, it has **no commands — only buttons**, and it is
 **made for people who are not technical**. It even tells you which models will run well on your computer.
 
-## What's new in 0.1.2
+## What's new in 0.2.0
 
-- Simpler file names, the same in every version: the download links on the
-  [KuttyLM page](https://github.com/tryvomtech/kuttylm#download) now always give the newest version.
-
-In 0.1.1: the **Picked for you** list updates online, and KuttyLM works without internet on the first start.
+- **Chat history:** your chats are saved on your computer and listed by date (Today, Yesterday,
+  Previous 7 days …). Open an old chat and continue, search, rename or delete it.
+- **AI titles:** each chat gets a short title written by the AI.
+- **Nicer answers:** tables, lists, headings, quotes and code blocks (with a Copy button) are shown
+  neatly. Links open in your web browser.
+- **Your choice:** turn off "Save chat history" or delete all chats in **Settings**.
 
 ## Which file do I need?
 

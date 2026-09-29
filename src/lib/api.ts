@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type {
   AppPaths,
+  ChatSummary,
   DeviceInfo,
   DownloadEvent,
   EngineStatus,
@@ -13,6 +14,7 @@ import type {
   Library,
   ModelList,
   NetworkInfo,
+  SavedChat,
   Settings,
 } from "./types";
 
@@ -89,6 +91,28 @@ export function getAppPaths(): Promise<AppPaths> {
 
 export function getNetworkInfo(): Promise<NetworkInfo> {
   return invoke<NetworkInfo>("get_network_info");
+}
+
+// ---- Saved chats ----
+
+export function listChats(): Promise<ChatSummary[]> {
+  return invoke<ChatSummary[]>("list_chats");
+}
+
+export function getChat(id: string): Promise<SavedChat> {
+  return invoke<SavedChat>("get_chat", { id });
+}
+
+export function saveChat(chat: SavedChat): Promise<void> {
+  return invoke("save_chat", { chat });
+}
+
+export function deleteChat(id: string): Promise<void> {
+  return invoke("delete_chat", { id });
+}
+
+export function deleteAllChats(): Promise<void> {
+  return invoke("delete_all_chats");
 }
 
 // ---- Hugging Face ----

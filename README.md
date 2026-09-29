@@ -73,6 +73,8 @@ KuttyLM is new and not yet signed by Microsoft or Apple, so your computer asks o
 ## Features
 
 - **Private** — models run on your computer. Your chats are never sent to the internet.
+- **Chat history** — your chats are saved on your computer, sorted by date, with short titles written by the AI. Search, rename or delete them.
+- **Nice answers** — tables, lists, headings and code blocks (with a Copy button) are shown neatly.
 - **Fits my computer** — every model shows *Fits well*, *May be slow* or *Will not fit*.
 - **Thousands of models** — a hand-picked list, plus search on Hugging Face.
 - **Easy downloads** — pause, resume, and a check that the file is complete.

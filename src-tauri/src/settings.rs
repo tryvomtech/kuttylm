@@ -41,6 +41,8 @@ pub struct Settings {
     pub gpu: GpuSetting,
     /// Used when `gpu` is `Custom`.
     pub gpu_layers: u32,
+    /// Keep chats on this computer, so they can be opened again later.
+    pub save_chats: bool,
 }
 
 impl Default for Settings {
@@ -53,6 +55,7 @@ impl Default for Settings {
             models_dir: None,
             gpu: GpuSetting::Auto,
             gpu_layers: 20,
+            save_chats: true,
         }
     }
 }

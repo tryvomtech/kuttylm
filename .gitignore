@@ -12,3 +12,4 @@ src-tauri/resources/windows-redist/
 # Private planning notes (kept on disk, not published)
 /prompt.md
 /PLAN.md
+/NOTES.local.md
