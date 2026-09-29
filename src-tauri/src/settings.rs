@@ -1,7 +1,7 @@
 //! User settings, saved in `~/.config/kuttylm/settings.json`.
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::RwLock;
 
 use serde::{Deserialize, Serialize};
@@ -77,7 +77,7 @@ impl Settings {
         self.models_dir = match self.models_dir.as_deref().map(str::trim) {
             None | Some("") => None,
             Some(dir) => {
-                let path = PathBuf::from(dir);
+                let path = paths::expand_home(dir);
                 if !path.is_absolute() {
                     return bad("The models folder must be a full path, for example /home/me/models.");
                 }
@@ -174,7 +174,7 @@ pub struct AppPaths {
 
 #[tauri::command]
 pub fn get_app_paths() -> AppPaths {
-    AppPaths { default_models_dir: paths::default_models_dir().to_string_lossy().into_owned() }
+    AppPaths { default_models_dir: paths::display(&paths::default_models_dir()) }
 }
 
 #[derive(Debug, Serialize)]

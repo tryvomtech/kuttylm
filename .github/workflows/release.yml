@@ -48,22 +48,35 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         with:
+          result-encoding: string
           script: |
             const fs = require('fs');
+            const tag = `v${process.env.VERSION}`;
+            // A published release for this tag already exists (for example, the tag was
+            // pushed again): do nothing, so the published files are not touched.
+            try {
+              await github.rest.repos.getReleaseByTag({ owner: context.repo.owner, repo: context.repo.repo, tag });
+              core.notice(`Release ${tag} already exists. Nothing to build.`);
+              return '';
+            } catch (e) {
+              if (e.status !== 404) throw e;
+            }
             const { data } = await github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              tag_name: `v${process.env.VERSION}`,
+              tag_name: tag,
               target_commitish: context.sha,
               name: `KuttyLM ${process.env.VERSION}`,
               body: fs.readFileSync('docs/release-notes.md', 'utf8'),
               draft: true,
               prerelease: false,
             });
-            return data.id;
+            return String(data.id);
 
   build:
     needs: create-release
+    # Skipped when the release already existed (see above).
+    if: needs.create-release.outputs.release_id != ''
     strategy:
       fail-fast: false
       matrix:

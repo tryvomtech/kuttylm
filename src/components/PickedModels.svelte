@@ -81,10 +81,6 @@
         <strong>Offline – list from {formatDateTime(list.fetched_at)}</strong>
         <span>Could not reach the online list. You see the last saved copy.</span>
       </Notice>
-    {:else if list.source === "mock"}
-      <Notice>
-        <span>This is a sample list. The online list is not connected yet.</span>
-      </Notice>
     {/if}
 
     <div class="tools">

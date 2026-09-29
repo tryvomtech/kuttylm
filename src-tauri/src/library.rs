@@ -121,7 +121,7 @@ pub fn scan() -> Library {
         used_bytes: models.iter().map(|m| m.bytes_on_disk).sum(),
         models,
         disk: disk::space_for(&root),
-        models_dir: root.to_string_lossy().into_owned(),
+        models_dir: paths::display(&root),
     }
 }
 
