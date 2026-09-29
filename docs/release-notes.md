@@ -5,11 +5,12 @@ Your chats stay on your computer. It works offline once a model is downloaded.
 KuttyLM is different: it is **lightweight**, it has **no commands — only buttons**, and it is
 **made for people who are not technical**. It even tells you which models will run well on your computer.
 
-## What's new in 0.1.1
+## What's new in 0.1.2
 
-- The **Picked for you** list now updates online. New models can appear without a new app version.
-- Works without internet on the first start: KuttyLM then shows the list that came with it.
-- Folders are shown shorter (for example `~/.local/share/kuttylm/models`).
+- Simpler file names, the same in every version: the download links on the
+  [KuttyLM page](https://github.com/tryvomtech/kuttylm#download) now always give the newest version.
+
+In 0.1.1: the **Picked for you** list updates online, and KuttyLM works without internet on the first start.
 
 ## Which file do I need?
 
@@ -17,10 +18,10 @@ Scroll down to **Assets** and download **one** file:
 
 | Your computer | Download |
 |---|---|
-| **Windows 10 or 11** | the file ending in **`_x64-setup.exe`** |
-| **Mac with Apple chip** (M1, M2, M3, M4…) | the file ending in **`_aarch64.dmg`** |
-| **Ubuntu 22.04 or 24.04** | the file ending in **`_amd64.deb`** |
-| **Other Linux** | the file ending in **`_amd64.AppImage`** |
+| **Windows 10 or 11** | **`KuttyLM-Windows-Setup.exe`** |
+| **Mac with Apple chip** (M1, M2, M3, M4…) | **`KuttyLM-Mac.dmg`** |
+| **Ubuntu 22.04 or 24.04** | **`KuttyLM-Linux.deb`** |
+| **Other Linux** | **`KuttyLM-Linux.AppImage`** |
 
 You do **not** need the "Source code" files.
 

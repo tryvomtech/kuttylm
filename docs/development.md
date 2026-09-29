@@ -46,7 +46,7 @@ and Node.js 20 or newer. Then, in the project folder:
 npm install
 bash scripts/fetch-llama-server-macos.sh   # Mac engine (CPU + Metal), about 12 MB
 npm run tauri dev                          # dev mode
-npm run tauri build                        # src-tauri/target/release/bundle/dmg/KuttyLM_0.1.0_aarch64.dmg
+npm run tauri build                        # src-tauri/target/release/bundle/dmg/KuttyLM_<version>_aarch64.dmg
 ```
 
 `src-tauri/tauri.macos.conf.json` is added to the main config on a Mac by itself. The app is
@@ -106,8 +106,8 @@ npm run tauri build
 
 Output:
 
-- `src-tauri/target/release/bundle/deb/KuttyLM_0.1.0_amd64.deb`
-- `src-tauri/target/release/bundle/appimage/KuttyLM_0.1.0_amd64.AppImage`
+- `src-tauri/target/release/bundle/deb/KuttyLM_<version>_amd64.deb`
+- `src-tauri/target/release/bundle/appimage/KuttyLM_<version>_amd64.AppImage`
 
 The first AppImage build downloads Tauri's packaging tools (about 20–30 MB).
 The `.deb` depends on `libvulkan1`, `libgomp1` and `libssl3` (standard on Ubuntu).

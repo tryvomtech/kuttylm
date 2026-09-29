@@ -127,9 +127,45 @@ jobs:
           npm run check
           cargo test --manifest-path src-tauri/Cargo.toml
 
-      - name: Build and add the files to the draft release
-        uses: tauri-apps/tauri-action@v0
+      - name: Build the installers
+        run: npm run tauri build
+
+      # Fixed file names (no version), so the README can link to
+      # https://github.com/tryvomtech/kuttylm/releases/latest/download/<name>
+      - name: Add the installers to the draft release
+        uses: actions/github-script@v9
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ID: ${{ needs.create-release.outputs.release_id }}
         with:
-          releaseId: ${{ needs.create-release.outputs.release_id }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const bundle = 'src-tauri/target/release/bundle';
+            const wanted = [
+              { dir: 'nsis', ext: '.exe', name: 'KuttyLM-Windows-Setup.exe' },
+              { dir: 'dmg', ext: '.dmg', name: 'KuttyLM-Mac.dmg' },
+              { dir: 'deb', ext: '.deb', name: 'KuttyLM-Linux.deb' },
+              { dir: 'appimage', ext: '.AppImage', name: 'KuttyLM-Linux.AppImage' },
+            ];
+            let uploaded = 0;
+            for (const w of wanted) {
+              const dir = path.join(bundle, w.dir);
+              if (!fs.existsSync(dir)) continue;
+              const files = fs.readdirSync(dir).filter((f) => f.endsWith(w.ext));
+              if (files.length !== 1) {
+                core.setFailed(`Expected one ${w.ext} file in ${dir}, found ${files.length}: ${files.join(', ')}`);
+                return;
+              }
+              const data = fs.readFileSync(path.join(dir, files[0]));
+              await github.rest.repos.uploadReleaseAsset({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: Number(process.env.RELEASE_ID),
+                name: w.name,
+                data,
+                headers: { 'content-type': 'application/octet-stream', 'content-length': data.length },
+              });
+              core.info(`Uploaded ${files[0]} as ${w.name} (${(data.length / 1e6).toFixed(1)} MB)`);
+              uploaded++;
+            }
+            if (uploaded === 0) core.setFailed('No installer was found to upload.');

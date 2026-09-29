@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/tryvomtech/kuttylm/releases/latest"><b>⬇ Download KuttyLM</b></a>
+  <a href="#download"><b>⬇ Download KuttyLM</b></a>
 </p>
 
 <p align="center">
@@ -34,14 +34,16 @@ are large and complicated, or use technical words. KuttyLM is built for everyone
 
 ## Download
 
-Open the [latest release](https://github.com/tryvomtech/kuttylm/releases/latest) and download the file for your computer:
+Click the link for your computer. It always downloads the newest version.
 
-| Your computer | File |
+| Your computer | Download |
 |---|---|
-| Windows 10 or 11 | `…_x64-setup.exe` |
-| Mac with an Apple chip (M1 or newer) | `…_aarch64.dmg` |
-| Ubuntu 22.04 or 24.04 | `…_amd64.deb` |
-| Other Linux | `…_amd64.AppImage` |
+| **Windows** 10 or 11 | [**KuttyLM-Windows-Setup.exe**](https://github.com/tryvomtech/kuttylm/releases/latest/download/KuttyLM-Windows-Setup.exe) |
+| **Mac** with an Apple chip (M1 or newer) | [**KuttyLM-Mac.dmg**](https://github.com/tryvomtech/kuttylm/releases/latest/download/KuttyLM-Mac.dmg) |
+| **Ubuntu** 22.04 or 24.04 | [**KuttyLM-Linux.deb**](https://github.com/tryvomtech/kuttylm/releases/latest/download/KuttyLM-Linux.deb) |
+| **Other Linux** | [**KuttyLM-Linux.AppImage**](https://github.com/tryvomtech/kuttylm/releases/latest/download/KuttyLM-Linux.AppImage) |
+
+All versions and release notes: [Releases](https://github.com/tryvomtech/kuttylm/releases).
 
 <details>
 <summary><b>First start: "Windows protected your PC" or "Apple could not check it"?</b></summary>
