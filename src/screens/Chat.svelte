@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, tick } from "svelte";
   import ChatHistory from "../components/ChatHistory.svelte";
+  import ContextMeter from "../components/ContextMeter.svelte";
   import Icon from "../components/Icon.svelte";
   import Markdown from "../components/Markdown.svelte";
   import MessageText from "../components/MessageText.svelte";
@@ -165,6 +166,9 @@
     {/each}
   </div>
 
+  <div class="footer">
+  <div class="memory"><ContextMeter /></div>
+
   <form
     class="composer"
     onsubmit={(e) => {
@@ -187,6 +191,7 @@
       <button type="submit" class="btn btn-primary" disabled={!running || !draft.trim()}>Send</button>
     {/if}
   </form>
+  </div>
 </div>
 </div>
 
@@ -359,13 +364,24 @@
     }
   }
 
+  .footer {
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .memory {
+    padding: 8px 32px 0;
+  }
+
+  .memory:empty {
+    display: none;
+  }
+
   .composer {
     display: flex;
     align-items: flex-end;
     gap: 10px;
-    padding: 12px 32px 20px;
-    border-top: 1px solid var(--border);
-    background: var(--bg);
+    padding: 10px 32px 20px;
   }
 
   textarea {

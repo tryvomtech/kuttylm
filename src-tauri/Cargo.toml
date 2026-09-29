@@ -1,6 +1,6 @@
 [package]
 name = "kuttylm"
-version = "0.2.1"
+version = "0.3.0"
 description = "Run local GGUF language models with a simple desktop app"
 authors = ["Tryvom"]
 license = "MIT"

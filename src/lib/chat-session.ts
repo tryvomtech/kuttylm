@@ -5,6 +5,7 @@
 import { get, writable } from "svelte/store";
 import { aiTitle, ChatError, streamChat, titleFromQuestion, type ChatMessage } from "./chat.ts";
 import { deleteAllChats, deleteChat, getChat, getSettings, listChats, saveChat } from "./api";
+import { answerReserve, contextSize, countTokens, fitMessages, loadIntoModel, type ServerOptions } from "./context.ts";
 import { engine } from "./engine";
 import type { ChatSummary, SavedChat, StoredMessage, TitleBy } from "./types";
 
@@ -37,6 +38,20 @@ export const currentChat = writable<ChatMeta | null>(null);
 /** Saved chats, newest first. */
 export const chatList = writable<ChatSummary[]>([]);
 
+export interface ContextState {
+  /** The model's context window in tokens; null when no model runs. */
+  size: number | null;
+  /** Tokens this chat uses in it; null when unknown. */
+  used: number | null;
+  /** Oldest messages left out because the chat is too long. */
+  dropped: number;
+  /** The chat is being loaded into the model. */
+  loading: boolean;
+}
+
+/** How much of the model's memory ("context window") the open chat uses. */
+export const context = writable<ContextState>({ size: null, used: null, dropped: 0, loading: false });
+
 // Entry ids are never reused, so a late update from an old answer cannot touch another chat.
 let nextId = 1;
 let controller: AbortController | null = null;
@@ -44,6 +59,13 @@ let controller: AbortController | null = null;
 let lastModelId: string | null = null;
 let lastModelName: string | null = null;
 let saveEnabled: boolean | null = null;
+/** Engine start the context size belongs to. */
+let sizeKey = "";
+let loadController: AbortController | null = null;
+/** The chat being loaded into the model right now (never rejects). */
+let loadingPromise: Promise<void> | null = null;
+/** "Oldest messages left out" is shown once per chat. */
+let droppedNoticeShown = false;
 
 const now = () => Math.floor(Date.now() / 1000);
 
@@ -67,6 +89,87 @@ async function savingOn(): Promise<boolean> {
 export function setChatSaving(on: boolean): void {
   saveEnabled = on;
 }
+
+// ---------- context window ----------
+
+function server(): ServerOptions | null {
+  const s = get(engine);
+  return s.state === "running" && s.base_url ? { baseUrl: s.base_url, apiKey: s.api_key } : null;
+}
+
+async function ensureSize(o: ServerOptions): Promise<number | null> {
+  const key = `${o.baseUrl}|${get(engine).started_at}`;
+  if (key !== sizeKey || get(context).size === null) {
+    const size = await contextSize(o);
+    sizeKey = key;
+    context.update((c) => ({ ...c, size }));
+  }
+  return get(context).size;
+}
+
+function stopLoading(): void {
+  loadController?.abort();
+  loadController = null;
+  context.update((c) => ({ ...c, loading: false }));
+}
+
+/**
+ * Measures the open chat and (if `load`) reads it into the model, so the model knows the whole
+ * chat and the next answer starts fast. Runs quietly in the background.
+ */
+export function refreshContext(load: boolean): Promise<void> {
+  const p = measureAndLoad(load);
+  loadingPromise = p;
+  void p.finally(() => {
+    if (loadingPromise === p) loadingPromise = null;
+  });
+  return p;
+}
+
+async function measureAndLoad(load: boolean): Promise<void> {
+  stopLoading();
+  const o = server();
+  if (!o) {
+    context.set({ size: null, used: null, dropped: 0, loading: false });
+    return;
+  }
+  const controller = new AbortController();
+  loadController = controller;
+  try {
+    const size = await ensureSize(o);
+    const messages = history();
+    if (!size || messages.length === 0) {
+      context.update((c) => ({ ...c, used: messages.length ? null : 0, dropped: 0 }));
+      return;
+    }
+    const fit = await fitMessages(messages, size - answerReserve(size), (m) => countTokens(o, m, controller.signal));
+    context.update((c) => ({ ...c, used: fit.tokens, dropped: fit.dropped, loading: load }));
+    if (load) await loadIntoModel(o, fit.messages, controller.signal);
+  } catch {
+    // Aborted, or the model stopped: the numbers are only a help.
+  } finally {
+    if (loadController === controller) {
+      loadController = null;
+      context.update((c) => ({ ...c, loading: false }));
+    }
+  }
+}
+
+function resetContext(): void {
+  stopLoading();
+  droppedNoticeShown = false;
+  context.update((c) => ({ ...c, used: server() ? 0 : null, dropped: 0 }));
+}
+
+// A model started, stopped or changed: measure again and load the open chat into it.
+let engineKey = "";
+engine.subscribe((s) => {
+  const key = s.state === "running" ? `${s.base_url}|${s.started_at}` : s.state;
+  if (key === engineKey) return;
+  engineKey = key;
+  sizeKey = "";
+  void refreshContext(s.state === "running");
+});
 
 export async function refreshChatList(): Promise<void> {
   try {
@@ -167,7 +270,36 @@ export async function send(text: string): Promise<void> {
   lastModelName = status.model_name;
 
   entries.update((all) => [...all, { id: nextId++, role: "user", content: message }]);
-  const messages = history();
+  // The chat is still being read into the model: wait. The answer needs exactly that memory,
+  // and stopping now would make the model read the whole chat again.
+  busy.set(true);
+  if (loadingPromise) await loadingPromise;
+  let messages = history();
+  let dropped = 0;
+  // Long chat: leave out the oldest messages so the model's memory still has room for the answer.
+  try {
+    const o = { baseUrl: status.base_url, apiKey: status.api_key };
+    const size = await ensureSize(o);
+    if (size) {
+      const fit = await fitMessages(messages, size - answerReserve(size), (m) => countTokens(o, m));
+      messages = fit.messages;
+      dropped = fit.dropped;
+      context.update((c) => ({ ...c, used: fit.tokens, dropped }));
+    }
+  } catch {
+    // Counting failed: send the whole chat, as before.
+  }
+  if (dropped > 0 && !droppedNoticeShown) {
+    droppedNoticeShown = true;
+    entries.update((all) => {
+      const notice: ChatEntry = {
+        id: nextId++,
+        role: "notice",
+        content: "This chat is longer than the model's memory. The model now reads only the newest messages.",
+      };
+      return [...all.slice(0, -1), notice, all[all.length - 1]];
+    });
+  }
   const answerId = nextId++;
   entries.update((all) => [
     ...all,
@@ -195,6 +327,7 @@ export async function send(text: string): Promise<void> {
       cut: reply.finishReason === "length",
     });
     answered = !!reply.content;
+    if (reply.totalTokens !== null) context.update((c) => ({ ...c, used: reply.totalTokens }));
   } catch (err) {
     const text = err instanceof ChatError ? err.message : "Something went wrong. Please try again.";
     patch(answerId, { pending: false, error: text });
@@ -239,6 +372,7 @@ export async function newChat(): Promise<void> {
   currentChat.set(null);
   lastModelId = null;
   lastModelName = null;
+  resetContext();
 }
 
 export async function openChat(id: string): Promise<void> {
@@ -249,6 +383,8 @@ export async function openChat(id: string): Promise<void> {
   currentChat.set({ id: chat.id, title: chat.title, titleBy: chat.title_by || "question", createdAt: chat.created_at });
   lastModelId = chat.model_id;
   lastModelName = chat.model_name;
+  droppedNoticeShown = chat.messages.some((m) => m.role === "notice" && m.content.includes("model's memory"));
+  void refreshContext(true);
 }
 
 export async function renameChat(id: string, title: string): Promise<void> {
@@ -270,6 +406,7 @@ export async function removeChat(id: string): Promise<void> {
     stop();
     entries.set([]);
     currentChat.set(null);
+    resetContext();
   }
   await deleteChat(id);
   await refreshChatList();
@@ -279,6 +416,7 @@ export async function removeAllChats(): Promise<void> {
   stop();
   entries.set([]);
   currentChat.set(null);
+  resetContext();
   await deleteAllChats();
   await refreshChatList();
 }

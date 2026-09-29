@@ -4,13 +4,15 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { applyChunk, ChatError, errorMessage, streamChat, type ChatReply } from "./chat.ts";
 
-const empty = (): ChatReply => ({ content: "", reasoning: "", tokensPerSecond: null, finishReason: null });
+const empty = (): ChatReply => ({ content: "", reasoning: "", tokensPerSecond: null, finishReason: null, totalTokens: null });
 
 test("chunks build the answer", () => {
   const r = empty();
   applyChunk(r, { choices: [{ delta: { content: "Hel" } }] });
   applyChunk(r, { choices: [{ delta: { content: "lo", reasoning_content: "hmm" } }] });
   applyChunk(r, { choices: [{ delta: {}, finish_reason: "stop" }], timings: { predicted_per_second: 25.2 } });
+  applyChunk(r, { choices: [], usage: { total_tokens: 66 } });
+  assert.equal(r.totalTokens, 66);
   assert.equal(r.content, "Hello");
   assert.equal(r.reasoning, "hmm");
   assert.equal(r.finishReason, "stop");

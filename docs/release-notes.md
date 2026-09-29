@@ -5,9 +5,15 @@ Your chats stay on your computer. It works offline once a model is downloaded.
 KuttyLM is different: it is **lightweight**, it has **no commands — only buttons**, and it is
 **made for people who are not technical**. It even tells you which models will run well on your computer.
 
-## What's new in 0.2.1
+## What's new in 0.3.0
 
-- The version number is shown at the bottom of the menu. Click it to see what is new.
+- **Chat memory bar:** shows how much of the model's memory (context window) the chat uses,
+  for example "15% · 1,240 of 8,192 tokens". It turns orange and red when the chat gets long.
+- **Old chats continue smoothly:** when you open a saved chat, KuttyLM loads it into the model,
+  so the model remembers it and answers faster.
+- **Very long chats still work:** if a chat is longer than the model's memory, the model reads only
+  the newest messages (with a short note) instead of showing an error.
+- **Version number** at the bottom of the menu. Click it to see what is new.
 
 ## What's new in 0.2.0
 

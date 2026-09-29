@@ -13,6 +13,8 @@ export interface ChatReply {
   tokensPerSecond: number | null;
   /** "stop", "length", or "stopped" when the user pressed Stop. */
   finishReason: string | null;
+  /** Tokens the model read plus wrote: the chat's size in its memory after this answer. */
+  totalTokens: number | null;
 }
 
 export class ChatError extends Error {}
@@ -27,7 +29,7 @@ export interface StreamOptions {
 
 /** Sends the chat and calls `onUpdate` for every new piece of the answer. */
 export async function streamChat(o: StreamOptions): Promise<ChatReply> {
-  const reply: ChatReply = { content: "", reasoning: "", tokensPerSecond: null, finishReason: null };
+  const reply: ChatReply = { content: "", reasoning: "", tokensPerSecond: null, finishReason: null, totalTokens: null };
 
   let response: Response;
   try {
@@ -37,7 +39,7 @@ export async function streamChat(o: StreamOptions): Promise<ChatReply> {
         "Content-Type": "application/json",
         ...(o.apiKey ? { Authorization: `Bearer ${o.apiKey}` } : {}),
       },
-      body: JSON.stringify({ messages: o.messages, stream: true }),
+      body: JSON.stringify({ messages: o.messages, stream: true, stream_options: { include_usage: true } }),
       signal: o.signal,
     });
   } catch (err) {
@@ -73,6 +75,7 @@ export async function streamChat(o: StreamOptions): Promise<ChatReply> {
 interface Chunk {
   choices?: { delta?: { content?: string | null; reasoning_content?: string | null }; finish_reason?: string | null }[];
   timings?: { predicted_per_second?: number };
+  usage?: { total_tokens?: number };
   error?: { message?: string; type?: string };
 }
 
@@ -83,6 +86,7 @@ export function applyChunk(reply: ChatReply, chunk: Chunk): void {
   if (choice?.delta?.reasoning_content) reply.reasoning += choice.delta.reasoning_content;
   if (choice?.finish_reason) reply.finishReason = choice.finish_reason;
   if (chunk.timings?.predicted_per_second) reply.tokensPerSecond = chunk.timings.predicted_per_second;
+  if (typeof chunk.usage?.total_tokens === "number") reply.totalTokens = chunk.usage.total_tokens;
 }
 
 async function friendlyHttpError(response: Response): Promise<string> {
