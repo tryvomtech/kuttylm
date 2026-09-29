@@ -1,0 +1,59 @@
+[package]
+name = "kuttylm"
+version = "0.1.0"
+description = "Run local GGUF language models with a simple desktop app"
+authors = ["Tryvom"]
+license = "MIT"
+homepage = "https://github.com/tryvomtech/kuttylm"
+repository = "https://github.com/tryvomtech/kuttylm"
+edition = "2021"
+rust-version = "1.80"
+
+[lib]
+name = "kuttylm_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sysinfo = { version = "0.39", default-features = false, features = ["system", "disk"] }
+thiserror = "2"
+dirs = "7"
+reqwest = { version = "0.13", default-features = false, features = ["native-tls", "http2", "system-proxy", "stream", "json"] }
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
+sha2 = "0.11"
+tokio = { version = "1", features = ["fs", "io-util", "sync", "time", "macros", "process"] }
+getrandom = "0.4"
+dunce = "1"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = [
+  "Win32_Foundation",
+  "Win32_Security",
+  "Win32_System_JobObjects",
+  "Win32_System_Threading",
+] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["net", "rt-multi-thread"] }
+
+# Smaller dev builds: no debug info for libraries (our own code keeps it).
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

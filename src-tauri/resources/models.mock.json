@@ -1,0 +1,196 @@
+{
+  "version": 1,
+  "updated_at": "2026-09-27T00:00:00Z",
+  "models": [
+    {
+      "id": "smollm2-135m-instruct-q4km",
+      "name": "SmolLM2 135M Instruct",
+      "description": "Tiny and very fast. Simple answers only. Good for a first test.",
+      "hf_repo": "bartowski/SmolLM2-135M-Instruct-GGUF",
+      "revision": "09816acd5d99df7be770d85ea30822623dab342c",
+      "files": [
+        {
+          "name": "SmolLM2-135M-Instruct-Q4_K_M.gguf",
+          "size_bytes": 105454432,
+          "sha256": "2e8040ceae7815abe0dcb3540b9995eaa1fa0d2ca9e797d0a635ae4433c68c2d"
+        }
+      ],
+      "quantization": "Q4_K_M",
+      "params_b": 0.135,
+      "context_length": 8192,
+      "license": "apache-2.0",
+      "tags": [
+        "chat"
+      ],
+      "trending": true
+    },
+    {
+      "id": "qwen2.5-0.5b-instruct-q4km",
+      "name": "Qwen2.5 0.5B Instruct",
+      "description": "Very small and fast. Good for testing and simple questions.",
+      "hf_repo": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+      "revision": "9217f5db79a29953eb74d5343926648285ec7e67",
+      "files": [
+        {
+          "name": "qwen2.5-0.5b-instruct-q4_k_m.gguf",
+          "size_bytes": 491400032,
+          "sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db"
+        }
+      ],
+      "mmproj": null,
+      "quantization": "Q4_K_M",
+      "params_b": 0.5,
+      "context_length": 32768,
+      "license": "apache-2.0",
+      "tags": [
+        "chat"
+      ],
+      "trending": true
+    },
+    {
+      "id": "llama-3.2-1b-instruct-q4km",
+      "name": "Llama 3.2 1B Instruct",
+      "description": "Small model from Meta. Quick answers on most computers.",
+      "hf_repo": "bartowski/Llama-3.2-1B-Instruct-GGUF",
+      "revision": "067b946cf014b7c697f3654f621d577a3e3afd1c",
+      "files": [
+        {
+          "name": "Llama-3.2-1B-Instruct-Q4_K_M.gguf",
+          "size_bytes": 807694464,
+          "sha256": "6f85a640a97cf2bf5b8e764087b1e83da0fdb51d7c9fab7d0fece9385611df83"
+        }
+      ],
+      "quantization": "Q4_K_M",
+      "params_b": 1.2,
+      "context_length": 131072,
+      "license": "llama3.2",
+      "tags": [
+        "chat"
+      ],
+      "trending": true
+    },
+    {
+      "id": "gemma-2-2b-it-q4km",
+      "name": "Gemma 2 2B Instruct",
+      "description": "Small model from Google. Good at writing and summaries.",
+      "hf_repo": "bartowski/gemma-2-2b-it-GGUF",
+      "revision": "855f67caed130e1befc571b52bd181be2e858883",
+      "files": [
+        {
+          "name": "gemma-2-2b-it-Q4_K_M.gguf",
+          "size_bytes": 1708582752,
+          "sha256": "e0aee85060f168f0f2d8473d7ea41ce2f3230c1bc1374847505ea599288a7787"
+        }
+      ],
+      "quantization": "Q4_K_M",
+      "params_b": 2.6,
+      "context_length": 8192,
+      "license": "gemma",
+      "tags": [
+        "chat",
+        "writing"
+      ],
+      "trending": false
+    },
+    {
+      "id": "llama-3.2-3b-instruct-q4km",
+      "name": "Llama 3.2 3B Instruct",
+      "description": "Balanced model from Meta. Better answers, still light.",
+      "hf_repo": "bartowski/Llama-3.2-3B-Instruct-GGUF",
+      "revision": "5ab33fa94d1d04e903623ae72c95d1696f09f9e8",
+      "files": [
+        {
+          "name": "Llama-3.2-3B-Instruct-Q4_K_M.gguf",
+          "size_bytes": 2019377696,
+          "sha256": "6c1a2b41161032677be168d354123594c0e6e67d2b9227c84f296ad037c728ff"
+        }
+      ],
+      "quantization": "Q4_K_M",
+      "params_b": 3.2,
+      "context_length": 131072,
+      "license": "llama3.2",
+      "tags": [
+        "chat"
+      ],
+      "trending": true
+    },
+    {
+      "id": "phi-3-mini-4k-instruct-q4",
+      "name": "Phi-3 Mini Instruct",
+      "description": "Model from Microsoft. Good at reasoning and simple code.",
+      "hf_repo": "microsoft/Phi-3-mini-4k-instruct-gguf",
+      "revision": "a64113399c2f6b8ad3e11c394733a2ddadaa7f33",
+      "files": [
+        {
+          "name": "Phi-3-mini-4k-instruct-q4.gguf",
+          "size_bytes": 2393231072,
+          "sha256": "8a83c7fb9049a9b2e92266fa7ad04933bb53aa1e85136b7b30f1b8000ff2edef"
+        }
+      ],
+      "quantization": "Q4",
+      "params_b": 3.8,
+      "context_length": 4096,
+      "license": "mit",
+      "tags": [
+        "chat",
+        "code"
+      ],
+      "trending": false
+    },
+    {
+      "id": "qwen2.5-7b-instruct-q4km",
+      "name": "Qwen2.5 7B Instruct",
+      "description": "Strong general model. Needs more memory. Comes as 2 files.",
+      "hf_repo": "Qwen/Qwen2.5-7B-Instruct-GGUF",
+      "revision": "bb5d59e06d9551d752d08b292a50eb208b07ab1f",
+      "files": [
+        {
+          "name": "qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf",
+          "size_bytes": 3993201344,
+          "sha256": "dfce12e3862a5283ccfb88221b48480e58745165de856439950d0f22590580db"
+        },
+        {
+          "name": "qwen2.5-7b-instruct-q4_k_m-00002-of-00002.gguf",
+          "size_bytes": 689872288,
+          "sha256": "539cf93f78e887edea1c04e2d7d8cdaca9d01dae9c9025bcb8accbe29df3d72a"
+        }
+      ],
+      "quantization": "Q4_K_M",
+      "params_b": 7.6,
+      "context_length": 32768,
+      "license": "apache-2.0",
+      "tags": [
+        "chat",
+        "code"
+      ],
+      "trending": true
+    },
+    {
+      "id": "smolvlm-256m-instruct-q8",
+      "name": "SmolVLM 256M Instruct",
+      "description": "Tiny model that can look at pictures and describe them.",
+      "hf_repo": "ggml-org/SmolVLM-256M-Instruct-GGUF",
+      "revision": "b9e4379657e1450d04d02eec8e345667265b0a00",
+      "files": [
+        {
+          "name": "SmolVLM-256M-Instruct-Q8_0.gguf",
+          "size_bytes": 175054528,
+          "sha256": "2a31195d3769c0b0fd0a4906201666108834848db768af11de1d2cef7cd35e65"
+        }
+      ],
+      "mmproj": {
+        "name": "mmproj-SmolVLM-256M-Instruct-Q8_0.gguf",
+        "size_bytes": 103769856,
+        "sha256": "7e943f7c53f0382a6fc41b6ee0c2def63ba4fded9ab8ed039cc9e2ab905e0edd"
+      },
+      "quantization": "Q8_0",
+      "params_b": 0.26,
+      "context_length": 8192,
+      "license": "apache-2.0",
+      "tags": [
+        "vision"
+      ],
+      "trending": false
+    }
+  ]
+}

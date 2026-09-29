@@ -1,0 +1,339 @@
+# KuttyLM
+
+**Chat with AI on your own computer — private, free, and it works offline once a model is downloaded.**
+
+KuttyLM downloads a small AI model to your computer and runs it there. Your chats never leave
+your computer. No account, no subscription, no terminal.
+
+### ⬇️ [Download KuttyLM](https://github.com/tryvomtech/kuttylm/releases/latest)
+
+## Why we built KuttyLM
+
+There are already many tools for running AI on your own computer. We tried them. Most of them:
+
+- need a terminal and typed commands, or
+- are big, heavy apps with many technical settings, or
+- expect you to know words like "quantization", "context length" or "GGUF".
+
+We could not find one that does all three things that matter for most people. So we built it:
+
+| | |
+|---|---|
+| **Lightweight** | A small download (the Windows and Ubuntu installers are about 30–40 MB). The app itself uses little memory, so the AI model gets the rest. |
+| **No commands, only buttons** | Install, pick a model, chat. Everything is on screen. You never need a terminal. |
+| **Made for everyone** | Simple words. KuttyLM checks your computer and tells you which models will run well on it. |
+
+KuttyLM is made by [Tryvom](https://tryvom.com). It is free and open source.
+
+## Which file do I need?
+
+Open the [download page](https://github.com/tryvomtech/kuttylm/releases/latest), scroll to
+**Assets**, and pick the file for your computer:
+
+| Your computer | Download this file |
+|---|---|
+| **Windows 10 or 11** | the file ending in **`_x64-setup.exe`** |
+| **Mac with Apple chip** (M1, M2, M3, M4…) | the file ending in **`_aarch64.dmg`** |
+| **Ubuntu 22.04 or 24.04** | the file ending in **`_amd64.deb`** |
+| **Other Linux** | the file ending in **`_amd64.AppImage`** |
+
+Not sure which Mac you have? Click the Apple menu (top left) → **About This Mac**. If it says "Chip: Apple M…",
+use the `.dmg`. Macs with an Intel processor are not supported.
+
+## First start
+
+KuttyLM is new and not yet signed by Microsoft or Apple, so your computer asks once if you trust it.
+
+**Windows**
+
+1. Double-click the `.exe` file.
+2. If you see "Windows protected your PC", click **More info**, then **Run anyway**.
+3. Click **Next** and **Install**. Then open **KuttyLM** from the Start menu.
+4. If Windows asks for permission to install "Microsoft Visual C++", click **Yes**.
+   KuttyLM needs it to run the AI model.
+
+**Mac**
+
+1. Double-click the `.dmg` file and drag **KuttyLM** into **Applications**.
+2. Open KuttyLM. The Mac says it cannot check the app. Click **Done**.
+3. Open **System Settings → Privacy & Security**, scroll down, and click **Open Anyway** next to KuttyLM.
+   This is needed only once.
+
+**Ubuntu**
+
+1. Double-click the `.deb` file. The App Center opens. Click **Install**.
+   (Or in a terminal: `sudo apt install ./KuttyLM_*_amd64.deb`.)
+2. Open **KuttyLM** from your apps.
+
+**Other Linux (AppImage)**
+
+1. Right-click the file → **Properties → Permissions** → tick **Allow executing file as program**.
+2. Double-click it. If it does not start, install FUSE 2 (`sudo apt install libfuse2` on 22.04,
+   `libfuse2t64` on 24.04).
+
+## How to use it
+
+1. **My computer** shows your memory and graphics card.
+2. **Find models** lists AI models. A green **Fits well** means it will run well on your computer.
+   Start with a small one, for example **SmolLM2 135M** (100 MB) or **Qwen2.5 0.5B** (470 MB).
+3. Click **Download**. You can pause and continue later.
+4. In **My models**, click **Run**.
+5. Open **Chat** and type your question.
+
+## What your computer needs
+
+| | |
+|---|---|
+| Memory (RAM) | 8 GB or more is best. Small models work with 4 GB. |
+| Disk space | 200 MB for KuttyLM, plus 0.1–5 GB for each model |
+| Internet | Only to download KuttyLM and the models. Chatting works offline. |
+
+## What else it can do
+
+- Search **Hugging Face** for thousands of free models, with size and "fits my computer" filters
+- Uses your graphics card when it helps (NVIDIA, AMD, Intel Arc, Apple chips)
+- Lets other apps use your model through an OpenAI-compatible API (optional, with a key)
+- Light and dark mode
+
+## Remove KuttyLM
+
+- **Windows:** Settings → Apps → KuttyLM → Uninstall.
+- **Mac:** drag KuttyLM from Applications to the Bin.
+- **Ubuntu:** `sudo apt remove kutty-lm` (the package name has a dash).
+
+Your downloaded models stay on your computer. To delete them, use **Delete** in **My models**
+before you remove the app (see "Where files are stored" below).
+
+---
+
+# For developers
+
+KuttyLM is built with Tauri 2 (Rust), Svelte 5 + TypeScript, and llama.cpp's `llama-server`
+(CPU + Vulkan on Linux and Windows, CPU + Metal on macOS) running in the background.
+
+Supported: **Ubuntu 22.04 and 24.04** and **Windows 10 and 11** (x86_64), and
+**macOS 13.3 or newer on Apple Silicon**. OS-specific code lives in `src-tauri/src/platform/`
+(`linux.rs`, `windows.rs`, `macos.rs`).
+
+The notes for each system (SmartScreen, the Visual C++ runtime, WebView2, Vulkan drivers,
+ad-hoc signing on the Mac) are in "First start" above and in the build sections below.
+
+## Build on GitHub (Linux, Windows and macOS)
+
+- **Release:** push a tag like `v0.1.1` (update `version` in `package.json`,
+  `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json` first).
+  `.github/workflows/release.yml` builds the `.deb`, `.AppImage`, Windows `.exe` and macOS `.dmg`
+  and puts them in a **draft** release with the text from `docs/release-notes.md`.
+  Check the draft on GitHub, then click **Publish release**.
+- **Test build:** **Actions → Build → Run workflow** (`.github/workflows/build.yml`). The files
+  appear under the run's **Artifacts**; nothing is published.
+
+## Build tools on Windows (developers)
+
+1. Install [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+   with "Desktop development with C++".
+2. Install Rust from [rustup.rs](https://rustup.rs) and Node.js 20 or newer.
+3. In PowerShell, in the project folder:
+
+```powershell
+npm install
+.\scripts\fetch-llama-server.ps1    # Windows engine, about 33 MB, checked with sha256
+npm run tauri dev                   # dev mode
+npm run tauri build                 # installer: src-tauri\target\release\bundle\nsis\
+```
+
+## Build on a Mac (developers)
+
+A `.dmg` can only be made on a Mac (it uses Apple's `hdiutil`). You need an Apple Silicon Mac,
+the Xcode Command Line Tools (`xcode-select --install`), Rust from [rustup.rs](https://rustup.rs)
+and Node.js 20 or newer. Then, in the project folder:
+
+```bash
+npm install
+bash scripts/fetch-llama-server-macos.sh   # Mac engine (CPU + Metal), about 12 MB
+npm run tauri dev                          # dev mode
+npm run tauri build                        # src-tauri/target/release/bundle/dmg/KuttyLM_0.1.0_aarch64.dmg
+```
+
+`src-tauri/tauri.macos.conf.json` is added to the main config on a Mac by itself. The app is
+signed "ad-hoc" (no Apple Developer account). To remove the "Open Anyway" step for users,
+sign and notarise it with an Apple Developer ID (see Tauri's "macOS Code Signing" guide).
+
+On macOS, llama-server is stopped when the app closes. If the app crashes, llama-server can keep
+running; stop it in **Activity Monitor**.
+
+## Build tools on Ubuntu (developers)
+
+```bash
+sudo apt update
+sudo apt install -y build-essential curl wget file pciutils vulkan-tools \
+  libwebkit2gtk-4.1-dev libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+# Rust (the minimal profile saves about 0.7 GB)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --profile minimal -y
+source "$HOME/.cargo/env"
+```
+
+You also need **Node.js 20 or newer** and npm.
+
+Disk space: about 1.5 GB for Rust, and 2–4 GB for build files in `src-tauri/target/`
+(`cargo clean` in `src-tauri/` removes them; the next build takes longer).
+
+## First setup
+
+```bash
+npm install
+bash scripts/fetch-llama-server.sh   # downloads the pinned llama.cpp build (about 31 MB)
+```
+
+The script puts `llama-server` and its libraries in `src-tauri/resources/llama/`
+(not in git). It checks the download with sha256. To update llama.cpp, change `TAG` and
+`SHA256` at the top of the script.
+
+## Run in dev mode
+
+```bash
+npm run app
+```
+
+The first start builds the Rust part (a few minutes). The window reloads when you change
+frontend files; Rust changes restart the app.
+
+`npm run app` runs `scripts/dev.sh`, which removes snap settings (`GTK_PATH`, `LOCPATH`…)
+that the VS Code snap terminal passes to programs. Without that, the app can crash with
+`symbol lookup error: /snap/core20/…/libpthread.so.0`. From a normal terminal,
+`npm run tauri dev` works too.
+
+## Build the packages
+
+```bash
+npm run tauri build
+```
+
+Output:
+
+- `src-tauri/target/release/bundle/deb/KuttyLM_0.1.0_amd64.deb`
+- `src-tauri/target/release/bundle/appimage/KuttyLM_0.1.0_amd64.AppImage`
+
+The first AppImage build downloads Tauri's packaging tools (about 20–30 MB).
+The `.deb` depends on `libvulkan1`, `libgomp1` and `libssl3` (standard on Ubuntu).
+
+## Tests
+
+```bash
+npm run check                         # TypeScript / Svelte type check
+npm run test:ui                       # chat stream tests (Node's built-in test runner)
+cd src-tauri && cargo test            # Rust unit tests (no internet needed)
+```
+
+Tests that need the internet, the engine or a downloaded model are marked `#[ignore]`:
+
+```bash
+cargo test engine::tests -- --ignored --test-threads 1   # real llama-server (needs SmolLM2 downloaded)
+cargo test hf::tests -- --ignored --nocapture            # real Hugging Face search (a few KB)
+cargo test real_download_smallest_model -- --ignored     # real 105 MB download
+cargo test print_this_device -- --ignored --nocapture    # prints what your computer reports
+```
+
+Chat tests against a running engine:
+`KUTTYLM_TEST_CHAT_URL=http://127.0.0.1:PORT/v1 KUTTYLM_TEST_CHAT_KEY=KEY npm run test:ui`
+
+---
+
+## Where files are stored
+
+| What | Ubuntu | Windows | macOS |
+|---|---|---|---|
+| Models (one folder per model; can be changed in Settings) | `~/.local/share/kuttylm/models/` | `%LOCALAPPDATA%\kuttylm\models\` | `~/Library/Application Support/kuttylm/models/` |
+| Settings | `~/.config/kuttylm/settings.json` | `%APPDATA%\kuttylm\settings.json` | `~/Library/Application Support/kuttylm/settings.json` |
+| Offline copy of the model list | `~/.cache/kuttylm/models.json` | `%LOCALAPPDATA%\kuttylm\models.json` | `~/Library/Caches/kuttylm/models.json` |
+
+A model folder has the GGUF file(s), `download.json` while the download is not finished,
+and `model.json` when it is complete and checked. Unfinished files end in `.part`.
+
+## Using the API from other apps
+
+Turn on **Settings → Allow other apps to use the model**, then run a model. Example:
+
+```bash
+curl http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_KEY" \
+  -d '{"model": "any", "messages": [{"role": "user", "content": "Hello"}]}'
+```
+
+Leave out the `Authorization` line if you did not set a key. With the API off, the engine
+listens on a random port on `127.0.0.1` with a hidden key that only KuttyLM knows.
+
+## The model list API
+
+Set the real URL in `src-tauri/src/config.rs` (`MODELS_API_URL`). While it is empty, the app
+uses `src-tauri/resources/models.mock.json`. The format (version 1) is described in
+[docs/model-list-api.md](docs/model-list-api.md) and matches the mock file. HTTPS is required
+(plain HTTP only for `localhost`, for testing).
+
+## Settings for developers (environment variables)
+
+| Variable | Use |
+|---|---|
+| `KUTTYLM_MODELS_API_URL` | Use another model list API (for example a local test server) |
+| `KUTTYLM_HF_BASE_URL` | Download from another server than `https://huggingface.co` (tests) |
+| `KUTTYLM_MODELS_DIR` | Use another models folder (tests) |
+| `KUTTYLM_DEV_AUTORUN=<model-id>` | Debug builds only: start this model when the app opens |
+
+---
+
+## Project layout
+
+```
+src/                     Svelte frontend
+  screens/               Home, Browse (Find models), MyModels, Chat, Settings
+  components/            small UI parts (cards, progress, dialogs, Hugging Face search…)
+  lib/                   API calls to Rust, stores, chat client, formatters
+src-tauri/src/
+  device/, platform/     computer info and process control (linux.rs, windows.rs, macos.rs)
+  catalog/               curated model list: fetch, cache, parse
+  hf/                    Hugging Face search and file lists
+  fit.rs                 the "fits my computer" formula (change it here)
+  download/              downloads: resume, pause, cancel, sha256
+  library.rs             downloaded models on disk, delete
+  engine/                starts and stops llama-server
+  settings.rs            user settings
+scripts/                 dev.sh, fetch-llama-server.sh (Ubuntu), fetch-llama-server.ps1 (Windows),
+                         fetch-llama-server-macos.sh (macOS)
+docs/                    model list API format, release notes
+.github/workflows/       release.yml (tagged releases), build.yml (test builds)
+```
+
+## Troubleshooting
+
+- **`linking with cc failed … unknown option '-m64'`** — another program called `cc` comes
+  first in your `PATH`. `src-tauri/.cargo/config.toml` already points Cargo to `/usr/bin/cc`.
+- **The model is slow on a laptop** — built-in graphics (for example Intel UHD) are often slower
+  than the processor, so "Automatic" uses the processor for them. You can change this in Settings.
+- **"Port 8080 is used by another program"** — choose another port in Settings.
+- **Building the Windows installer on Linux** — install `nsis` and `lld-14` (apt), then
+  `cargo install --locked cargo-xwin`, then:
+
+  ```bash
+  bash scripts/fetch-windows-engine.sh      # Windows engine + VC++ runtime installer (about 58 MB)
+  PATH=/usr/lib/llvm-14/bin:$PATH npm run tauri build -- --runner cargo-xwin \
+    --target x86_64-pc-windows-msvc --bundles nsis --config src-tauri/tauri.windows.conf.json
+  ```
+
+  The first run downloads Microsoft's Windows SDK and C runtime files (about 1.1 GB on disk, in
+  `~/.cache/cargo-xwin`). The installer is written to
+  `src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/`.
+- **Checking the Windows code from Linux** — `rustup target add x86_64-pc-windows-msvc`, then
+  `PATH=/usr/lib/llvm-14/bin:$PATH cargo check --target x86_64-pc-windows-msvc` in `src-tauri/`
+  (needs `llvm-rc` from the `llvm` package). This compiles everything but does not make an installer.
+- **Disk full** — delete models in **My models**, or run `cargo clean` in `src-tauri/`.
+
+## Licence
+
+KuttyLM is free and open source under the [MIT licence](LICENSE). Copyright (c) 2026 Tryvom.
+
+- KuttyLM includes llama.cpp (MIT licence; its `LICENSE` file is inside the app's `llama` folder).
+- The Windows installer carries Microsoft's Visual C++ runtime installer (`vc_redist.x64.exe`),
+  as allowed by Microsoft's redistribution terms.
+- Each AI model has its own licence, shown in the app. Check it before you use a model for work.

@@ -1,0 +1,124 @@
+/* Colours for light mode (default) and dark mode.
+   Dark mode is used when the system asks for it, unless the user picked a theme. */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #eef0f4;
+  --border: #dfe3ea;
+  --text: #1a1d24;
+  --text-muted: #5d6573;
+  --accent: #2563eb;
+  --accent-text: #ffffff;
+  --accent-soft: #e0e9fd;
+  --good: #15803d;
+  --warn: #b45309;
+  --bad: #b91c1c;
+  --bar-bg: #e3e7ee;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --radius: 10px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111318;
+    --surface: #1a1d24;
+    --surface-2: #232733;
+    --border: #2d323f;
+    --text: #e8eaef;
+    --text-muted: #9aa2b1;
+    --accent: #5b8def;
+    --accent-text: #0b1220;
+    --accent-soft: #1e2a44;
+    --good: #4ade80;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --bar-bg: #2d323f;
+    --shadow: none;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #111318;
+  --surface: #1a1d24;
+  --surface-2: #232733;
+  --border: #2d323f;
+  --text: #e8eaef;
+  --text-muted: #9aa2b1;
+  --accent: #5b8def;
+  --accent-text: #0b1220;
+  --accent-soft: #1e2a44;
+  --good: #4ade80;
+  --warn: #fbbf24;
+  --bad: #f87171;
+  --bar-bg: #2d323f;
+  --shadow: none;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Ubuntu, Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+#app {
+  height: 100%;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.25;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent);
+  filter: brightness(1.08);
+}
+
+.muted {
+  color: var(--text-muted);
+}

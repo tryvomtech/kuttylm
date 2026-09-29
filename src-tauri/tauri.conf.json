@@ -1,0 +1,61 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "KuttyLM",
+  "version": "0.1.0",
+  "identifier": "com.tryvom.kuttylm",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "KuttyLM",
+        "width": 1100,
+        "height": 720,
+        "minWidth": 760,
+        "minHeight": 520
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:*"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "deb",
+      "appimage"
+    ],
+    "category": "Utility",
+    "shortDescription": "Run local AI models",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.png"
+    ],
+    "resources": {
+      "resources/llama/": "llama/"
+    },
+    "publisher": "Tryvom",
+    "longDescription": "KuttyLM runs local AI language models (GGUF) on your own computer. Find a model, download it, run it, chat with it, and let other apps use it through an OpenAI-compatible API.",
+    "linux": {
+      "deb": {
+        "depends": [
+          "libvulkan1",
+          "libgomp1",
+          "libssl3"
+        ],
+        "section": "utils"
+      },
+      "appimage": {
+        "bundleMediaFramework": false
+      }
+    },
+    "copyright": "Copyright (c) 2026 Tryvom. MIT License.",
+    "homepage": "https://github.com/tryvomtech/kuttylm"
+  }
+}

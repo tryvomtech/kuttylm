@@ -1,0 +1,14 @@
+node_modules/
+dist/
+src-tauri/target/
+src-tauri/gen/
+src-tauri/resources/llama/
+src-tauri/resources/llama-macos/
+src-tauri/resources/llama-windows/
+src-tauri/resources/windows-redist/
+*.log
+/KuttyLM_*-setup.exe
+
+# Private planning notes (kept on disk, not published)
+/prompt.md
+/PLAN.md

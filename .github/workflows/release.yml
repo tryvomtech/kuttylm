@@ -1,0 +1,122 @@
+# Makes a KuttyLM release with installers for Windows, macOS and Linux.
+#
+# How to release:
+#   1. Set the same version in package.json, src-tauri/Cargo.toml and src-tauri/tauri.conf.json.
+#   2. Push a tag with that version:  git tag v0.1.0 && git push origin v0.1.0
+#   3. Wait for this workflow. It creates a DRAFT release with all files.
+#   4. On GitHub, open Releases, check the draft, then click "Publish release".
+#
+# The text of the release comes from docs/release-notes.md.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.create.outputs.result }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the version
+        id: version
+        run: |
+          PKG=$(node -p "require('./package.json').version")
+          CONF=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          CARGO=$(sed -n 's/^version = "\(.*\)"/\1/p' src-tauri/Cargo.toml | head -1)
+          echo "package.json=$PKG tauri.conf.json=$CONF Cargo.toml=$CARGO"
+          if [ "$PKG" != "$CONF" ] || [ "$PKG" != "$CARGO" ]; then
+            echo "::error::The version is not the same in package.json, tauri.conf.json and Cargo.toml."
+            exit 1
+          fi
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$GITHUB_REF_NAME" != "v$PKG" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match the app version v$PKG."
+            exit 1
+          fi
+          echo "version=$PKG" >> "$GITHUB_OUTPUT"
+
+      - name: Create the draft release
+        id: create
+        uses: actions/github-script@v7
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        with:
+          script: |
+            const fs = require('fs');
+            const { data } = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `v${process.env.VERSION}`,
+              target_commitish: context.sha,
+              name: `KuttyLM ${process.env.VERSION}`,
+              body: fs.readFileSync('docs/release-notes.md', 'utf8'),
+              draft: true,
+              prerelease: false,
+            });
+            return data.id;
+
+  build:
+    needs: create-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04 # oldest supported Ubuntu, so the packages run on 22.04 and 24.04
+          - os: windows-latest
+          - os: macos-latest # Apple Silicon (arm64)
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install Linux build tools
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libxdo-dev libssl-dev \
+            libayatana-appindicator3-dev librsvg2-dev patchelf file
+
+      - name: Get the model engine (Linux)
+        if: runner.os == 'Linux'
+        run: bash scripts/fetch-llama-server.sh
+
+      - name: Get the model engine (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/fetch-llama-server.ps1
+
+      - name: Get the model engine (macOS)
+        if: runner.os == 'macOS'
+        run: bash scripts/fetch-llama-server-macos.sh
+
+      - run: npm ci
+
+      - name: Check and test
+        run: |
+          npm run check
+          cargo test --manifest-path src-tauri/Cargo.toml
+
+      - name: Build and add the files to the draft release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          releaseId: ${{ needs.create-release.outputs.release_id }}
