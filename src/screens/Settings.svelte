@@ -120,7 +120,7 @@
 
   {#if form}
     <div class="stack">
-      <Card title="Use the model from other apps">
+      <Card title="API — Use the model from other apps">
         <div class="fields">
           <Switch
             bind:checked={form.api_enabled}
