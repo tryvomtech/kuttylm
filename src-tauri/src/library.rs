@@ -157,6 +157,7 @@ pub async fn delete_model(
     let dir = model_dir(&model_id)?;
     // A running model keeps its files open. Stop it first.
     engine.stop_if(&app, &model_id).await;
+    crate::docs::before_model_delete(&app, &model_id).await;
     // A running download removes its own folder when it stops.
     if downloads.cancel(&model_id) {
         return Ok(());

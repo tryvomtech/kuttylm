@@ -7,8 +7,8 @@
 //!   Windows: a job object; macOS: not possible, only a normal exit stops it).
 
 mod args;
-mod logs;
-mod process;
+pub(crate) mod logs;
+pub(crate) mod process;
 
 #[cfg(test)]
 mod tests;
@@ -231,7 +231,7 @@ impl Engine {
     }
 }
 
-fn engine_exe(app: &AppHandle) -> AppResult<PathBuf> {
+pub(crate) fn engine_exe(app: &AppHandle) -> AppResult<PathBuf> {
     let name = format!("llama/llama-server{}", std::env::consts::EXE_SUFFIX);
     if let Ok(dir) = app.path().resource_dir() {
         let exe = dir.join(&name);
@@ -268,6 +268,9 @@ pub fn get_engine_status(engine: State<'_, Engine>) -> EngineStatus {
 pub async fn start_model(app: AppHandle, model_id: String, engine: State<'_, Engine>) -> AppResult<()> {
     let dir = library::model_dir(&model_id)?;
     let manifest = library::read_manifest(&dir, READY_FILE).ok_or(AppError::ModelNotReady)?;
+    if manifest.model.tags.iter().any(|t| t == "embedding") {
+        return Err(AppError::NotAChatModel);
+    }
     let exe = engine_exe(&app)?;
     let device = crate::device::detect_async().await?;
 

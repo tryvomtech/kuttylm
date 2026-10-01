@@ -3,9 +3,11 @@
   import Sidebar from "./components/Sidebar.svelte";
   import Browse from "./screens/Browse.svelte";
   import Chat from "./screens/Chat.svelte";
+  import Documents from "./screens/Documents.svelte";
   import Home from "./screens/Home.svelte";
   import MyModels from "./screens/MyModels.svelte";
   import Settings from "./screens/Settings.svelte";
+  import { startDocumentEvents } from "./lib/documents";
   import { startDownloadEvents } from "./lib/downloads";
   import { startEngineEvents } from "./lib/engine";
   import { refreshChatList } from "./lib/chat-session";
@@ -14,6 +16,7 @@
   onMount(() => {
     startDownloadEvents();
     startEngineEvents();
+    startDocumentEvents();
     void refreshChatList();
   });
 </script>
@@ -29,6 +32,8 @@
       <MyModels />
     {:else if $currentScreen === "chat"}
       <Chat />
+    {:else if $currentScreen === "documents"}
+      <Documents />
     {:else}
       <Settings />
     {/if}

@@ -113,6 +113,9 @@
             <div class="info">
               <div class="title">
                 <h2>{m.name}</h2>
+                {#if m.tags.includes("embedding")}
+                  <span class="tag">For Documents</span>
+                {/if}
                 {#if m.status === "ready"}
                   <span class="tag ok">Ready</span>
                 {:else}
@@ -128,11 +131,18 @@
                   <span>Started {formatDateTime(m.saved_at)}</span>
                 {/if}
               </p>
+              {#if m.tags.includes("embedding")}
+                <p class="meta muted">Finds the right parts of your documents. It cannot chat.</p>
+              {/if}
               <p class="tech muted">{m.hf_repo}{m.quantization ? ` · ${m.quantization}` : ""}</p>
             </div>
             <div class="side">
               {#if m.status === "ready"}
-                <RunControls modelId={m.id} />
+                {#if m.tags.includes("embedding")}
+                  <button class="btn" onclick={() => currentScreen.set("documents")}>Open Documents</button>
+                {:else}
+                  <RunControls modelId={m.id} />
+                {/if}
                 <button class="btn btn-quiet" onclick={() => (toDelete = m)}>Delete</button>
               {:else}
                 <DownloadControls
@@ -157,7 +167,7 @@
   title="Delete {toDelete?.name ?? 'this model'}?"
   message="{toDelete && $engine.model_id === toDelete.id && $engine.state !== 'stopped'
     ? 'The model will be stopped first. '
-    : ''}The model files ({formatBytes(toDelete?.bytes_on_disk ?? 0)}) will be removed from this computer. You can download it again later."
+    : ''}{toDelete?.tags.includes('embedding') ? 'Documents cannot be used until you download it again. ' : ''}The model files ({formatBytes(toDelete?.bytes_on_disk ?? 0)}) will be removed from this computer. You can download it again later."
   confirmLabel="Delete"
   danger
   onconfirm={confirmDelete}

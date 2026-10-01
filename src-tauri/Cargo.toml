@@ -1,6 +1,6 @@
 [package]
 name = "kuttylm"
-version = "0.3.0"
+version = "0.4.0"
 description = "Run local GGUF language models with a simple desktop app"
 authors = ["Tryvom"]
 license = "MIT"
@@ -29,6 +29,10 @@ futures-util = { version = "0.3", default-features = false, features = ["std"] }
 sha2 = "0.11"
 tokio = { version = "1", features = ["fs", "io-util", "sync", "time", "macros", "process"] }
 getrandom = "0.4"
+# Documents: PDF text, Word (.docx = zip + XML)
+pdf-extract = "0.12"
+zip = { version = "8", default-features = false, features = ["deflate"] }
+quick-xml = "0.42"
 dunce = "1"
 
 [target.'cfg(unix)'.dependencies]
@@ -56,5 +60,6 @@ debug = false
 codegen-units = 1
 lto = true
 opt-level = "s"
-panic = "abort"
+# "unwind" (not "abort"): a broken PDF must not close the whole app (see docs/parse.rs).
+panic = "unwind"
 strip = true

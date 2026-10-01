@@ -16,7 +16,8 @@
     | "panel"
     | "plus"
     | "edit"
-    | "trash";
+    | "trash"
+    | "file";
 </script>
 
 <script lang="ts">
@@ -71,5 +72,7 @@
     <path d="M4 20h4L19 9l-4-4L4 16v4Z" /><path d="m13.5 6.5 4 4" />
   {:else if name === "trash"}
     <path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M6 7l1 13h10l1-13" />
+  {:else if name === "file"}
+    <path d="M14 3H6v18h12V7l-4-4Z" /><path d="M14 3v4h4" /><path d="M9 12h6M9 16h6" />
   {/if}
 </svg>

@@ -30,6 +30,17 @@ pub struct StoredMessage {
     pub stopped: bool,
     #[serde(default)]
     pub cut: bool,
+    /// Document parts the answer was based on.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub sources: Vec<Source>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Source {
+    pub doc_id: String,
+    pub doc_name: String,
+    #[serde(default)]
+    pub page: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -48,6 +59,9 @@ pub struct Chat {
     pub model_name: Option<String>,
     #[serde(default)]
     pub messages: Vec<StoredMessage>,
+    /// Documents chosen for this chat.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub doc_ids: Vec<String>,
 }
 
 /// What the history list needs; the messages are skipped while reading.
@@ -177,6 +191,7 @@ mod tests {
                     tokens_per_second: None,
                     stopped: false,
                     cut: false,
+                    sources: vec![],
                 },
                 StoredMessage {
                     role: "assistant".into(),
@@ -186,8 +201,10 @@ mod tests {
                     tokens_per_second: Some(20.5),
                     stopped: false,
                     cut: false,
+                    sources: vec![Source { doc_id: "d1".into(), doc_name: "a.pdf".into(), page: Some(2) }],
                 },
             ],
+            doc_ids: vec!["d1".into()],
         }
     }
 

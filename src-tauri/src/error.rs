@@ -39,6 +39,15 @@ pub enum AppError {
     #[error("Could not reach Hugging Face. Check your internet connection and try again.")]
     HuggingFaceUnavailable,
 
+    #[error("This model is for document search. It cannot chat.")]
+    NotAChatModel,
+
+    #[error("Documents need the document search model. Download it first.")]
+    EmbedModelMissing,
+
+    #[error("{0}")]
+    Document(String),
+
     #[error("{0}")]
     InvalidSetting(String),
 

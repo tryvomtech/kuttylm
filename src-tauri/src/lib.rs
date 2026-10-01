@@ -3,6 +3,7 @@ mod chats;
 mod config;
 mod device;
 mod disk;
+mod docs;
 mod download;
 mod engine;
 mod error;
@@ -24,6 +25,8 @@ pub fn run() {
         // Opens links from chat answers in the normal web browser.
         .plugin(tauri_plugin_opener::init())
         .manage(catalog::CatalogState::default())
+        .manage(docs::DocsState::default())
+        .manage(docs::embed::Embedder::default())
         .manage(download::DownloadManager::default())
         .manage(engine::Engine::default())
         .manage(hf::HfState::default())
@@ -49,6 +52,11 @@ pub fn run() {
             chats::delete_all_chats,
             hf::hf_search,
             hf::hf_repo_files,
+            docs::get_docs_status,
+            docs::list_documents,
+            docs::add_document,
+            docs::delete_document,
+            docs::search_documents,
         ])
         .setup(|_app| {
             // Debug builds only: `KUTTYLM_DEV_AUTORUN=<model-id>` starts a model at launch,
@@ -72,6 +80,7 @@ pub fn run() {
         // Closing the window ends the app. Never leave llama-server running.
         if let RunEvent::Exit = event {
             app.state::<engine::Engine>().shutdown_blocking();
+            app.state::<docs::embed::Embedder>().shutdown_blocking();
         }
     });
 }

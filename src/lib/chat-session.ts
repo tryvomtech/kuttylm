@@ -4,10 +4,21 @@
 // another screen. Chats are saved on this computer (unless "Save chat history" is off).
 import { get, writable } from "svelte/store";
 import { aiTitle, ChatError, streamChat, titleFromQuestion, type ChatMessage } from "./chat.ts";
-import { deleteAllChats, deleteChat, getChat, getSettings, listChats, saveChat } from "./api";
+import {
+  deleteAllChats,
+  deleteChat,
+  errorText,
+  getChat,
+  getSettings,
+  listChats,
+  saveChat,
+  searchDocuments,
+} from "./api";
 import { answerReserve, contextSize, countTokens, fitMessages, loadIntoModel, type ServerOptions } from "./context.ts";
+import { documents } from "./documents";
 import { engine } from "./engine";
-import type { ChatSummary, SavedChat, StoredMessage, TitleBy } from "./types";
+import { excerptCount, questionWithExcerpts, sourcesOf } from "./rag.ts";
+import type { ChatSummary, SavedChat, Source, StoredMessage, TitleBy } from "./types";
 
 export interface ChatEntry {
   id: number;
@@ -22,6 +33,10 @@ export interface ChatEntry {
   /** "length": the answer was cut at the model's limit. */
   cut?: boolean;
   error?: string;
+  /** Document parts the answer was based on. */
+  sources?: Source[];
+  /** Shown while the answer has not started, e.g. "Searching your documents…". */
+  status?: string;
 }
 
 export interface ChatMeta {
@@ -37,6 +52,8 @@ export const busy = writable(false);
 export const currentChat = writable<ChatMeta | null>(null);
 /** Saved chats, newest first. */
 export const chatList = writable<ChatSummary[]>([]);
+/** Documents chosen for the open chat. A new chat keeps the choice. */
+export const chatDocs = writable<string[]>([]);
 
 export interface ContextState {
   /** The model's context window in tokens; null when no model runs. */
@@ -199,6 +216,7 @@ function toStored(e: ChatEntry): StoredMessage {
     tokens_per_second: e.tokensPerSecond ?? null,
     stopped: !!e.stopped,
     cut: !!e.cut,
+    sources: e.sources?.length ? e.sources : undefined,
   };
 }
 
@@ -212,6 +230,7 @@ function fromStored(m: StoredMessage): ChatEntry {
     tokensPerSecond: m.tokens_per_second ?? null,
     stopped: m.stopped,
     cut: m.cut,
+    sources: m.sources ?? undefined,
   };
 }
 
@@ -232,6 +251,7 @@ async function persist(): Promise<void> {
     model_id: lastModelId,
     model_name: lastModelName,
     messages,
+    doc_ids: get(chatDocs),
   };
   try {
     await saveChat(chat);
@@ -248,6 +268,20 @@ async function nameChat(chatId: string, question: string, baseUrl: string, apiKe
   if (!title || !meta || meta.id !== chatId || meta.titleBy !== "question") return;
   currentChat.set({ ...meta, title, titleBy: "ai" });
   await persist();
+}
+
+/** Chosen documents that are ready to search (deleted ones are skipped). */
+function readyDocIds(): string[] {
+  const ready = new Set(get(documents).filter((d) => d.status === "ready").map((d) => d.id));
+  return get(chatDocs).filter((id) => ready.has(id));
+}
+
+function addNoticeBefore(entryId: number, content: string): void {
+  entries.update((all) => {
+    const i = all.findIndex((e) => e.id === entryId);
+    const notice: ChatEntry = { id: nextId++, role: "notice", content };
+    return i < 0 ? [...all, notice] : [...all.slice(0, i), notice, ...all.slice(i)];
+  });
 }
 
 export async function send(text: string): Promise<void> {
@@ -269,17 +303,47 @@ export async function send(text: string): Promise<void> {
   lastModelId = status.model_id;
   lastModelName = status.model_name;
 
-  entries.update((all) => [...all, { id: nextId++, role: "user", content: message }]);
+  const userId = nextId++;
+  const answerId = nextId++;
+  const docIds = readyDocIds();
+  entries.update((all) => [
+    ...all,
+    { id: userId, role: "user", content: message },
+    {
+      id: answerId,
+      role: "assistant",
+      content: "",
+      modelName: status.model_name ?? undefined,
+      pending: true,
+      status: docIds.length ? "Searching your documents…" : undefined,
+    },
+  ]);
   // The chat is still being read into the model: wait. The answer needs exactly that memory,
   // and stopping now would make the model read the whole chat again.
   busy.set(true);
   if (loadingPromise) await loadingPromise;
   let messages = history();
   let dropped = 0;
+  const o = { baseUrl: status.base_url, apiKey: status.api_key };
+  const size = await ensureSize(o).catch(() => null);
+
+  // Documents: put the best matching parts in front of the question (only in this request).
+  let sources: Source[] = [];
+  if (docIds.length) {
+    try {
+      const hits = await searchDocuments(docIds, message, excerptCount(size));
+      if (hits.length) {
+        messages = [...messages.slice(0, -1), { role: "user", content: questionWithExcerpts(message, hits) }];
+        sources = sourcesOf(hits);
+      }
+    } catch (err) {
+      addNoticeBefore(userId, `Your documents could not be searched: ${errorText(err)}`);
+    }
+    patch(answerId, { status: undefined, sources: sources.length ? sources : undefined });
+  }
+
   // Long chat: leave out the oldest messages so the model's memory still has room for the answer.
   try {
-    const o = { baseUrl: status.base_url, apiKey: status.api_key };
-    const size = await ensureSize(o);
     if (size) {
       const fit = await fitMessages(messages, size - answerReserve(size), (m) => countTokens(o, m));
       messages = fit.messages;
@@ -291,20 +355,8 @@ export async function send(text: string): Promise<void> {
   }
   if (dropped > 0 && !droppedNoticeShown) {
     droppedNoticeShown = true;
-    entries.update((all) => {
-      const notice: ChatEntry = {
-        id: nextId++,
-        role: "notice",
-        content: "This chat is longer than the model's memory. The model now reads only the newest messages.",
-      };
-      return [...all.slice(0, -1), notice, all[all.length - 1]];
-    });
+    addNoticeBefore(userId, "This chat is longer than the model's memory. The model now reads only the newest messages.");
   }
-  const answerId = nextId++;
-  entries.update((all) => [
-    ...all,
-    { id: answerId, role: "assistant", content: "", modelName: status.model_name ?? undefined, pending: true },
-  ]);
   void persist();
 
   busy.set(true);
@@ -383,6 +435,7 @@ export async function openChat(id: string): Promise<void> {
   currentChat.set({ id: chat.id, title: chat.title, titleBy: chat.title_by || "question", createdAt: chat.created_at });
   lastModelId = chat.model_id;
   lastModelName = chat.model_name;
+  chatDocs.set(chat.doc_ids ?? []);
   droppedNoticeShown = chat.messages.some((m) => m.role === "notice" && m.content.includes("model's memory"));
   void refreshContext(true);
 }

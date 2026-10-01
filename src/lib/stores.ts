@@ -1,6 +1,6 @@
 import { writable } from "svelte/store";
 
-export type Screen = "home" | "browse" | "models" | "chat" | "settings";
+export type Screen = "home" | "browse" | "models" | "chat" | "documents" | "settings";
 
 export const currentScreen = writable<Screen>("home");
 

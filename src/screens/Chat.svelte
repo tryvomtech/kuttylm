@@ -2,12 +2,14 @@
   import { onMount, tick } from "svelte";
   import ChatHistory from "../components/ChatHistory.svelte";
   import ContextMeter from "../components/ContextMeter.svelte";
+  import DocPicker from "../components/DocPicker.svelte";
   import Icon from "../components/Icon.svelte";
   import Markdown from "../components/Markdown.svelte";
   import MessageText from "../components/MessageText.svelte";
   import { getSettings } from "../lib/api";
   import { busy, currentChat, entries, newChat, refreshChatList, retry, send, stop } from "../lib/chat-session";
   import { engine } from "../lib/engine";
+  import { sourceLabel } from "../lib/rag";
   import { currentScreen } from "../lib/stores";
 
   const PANEL_KEY = "kuttylm.chatHistoryOpen";
@@ -145,8 +147,16 @@
             {/if}
             {#if e.content}
               <Markdown text={e.content} />
+            {:else if e.pending && e.status}
+              <span class="status">{e.status}</span>
             {:else if e.pending && !e.reasoning}
               <span class="typing" aria-label="The model is writing"><i></i><i></i><i></i></span>
+            {/if}
+            {#if e.sources?.length && (e.content || !e.pending)}
+              <p class="sources">
+                <Icon name="file" size={13} />
+                <span>Sources: {e.sources.map(sourceLabel).join(" · ")}</span>
+              </p>
             {/if}
             {#if e.error}
               <p class="error" role="alert">{e.error}</p>
@@ -167,7 +177,10 @@
   </div>
 
   <div class="footer">
-  <div class="memory"><ContextMeter /></div>
+  <div class="tools">
+    <DocPicker />
+    <div class="memory"><ContextMeter /></div>
+  </div>
 
   <form
     class="composer"
@@ -369,12 +382,37 @@
     background: var(--bg);
   }
 
-  .memory {
+  .tools {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     padding: 8px 32px 0;
   }
 
-  .memory:empty {
-    display: none;
+  .memory {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .status {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .sources {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 8px 0 0;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+  }
+
+  .sources :global(svg) {
+    flex-shrink: 0;
+    margin-top: 2px;
   }
 
   .composer {

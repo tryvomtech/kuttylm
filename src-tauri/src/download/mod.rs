@@ -115,6 +115,7 @@ pub async fn start_download(
         None => catalog
             .find(&model_id)
             .or_else(|| hf.find(&model_id))
+            .or_else(|| (model_id == crate::docs::embed::EMBED_MODEL_ID).then(crate::docs::embed::embed_model))
             .ok_or(AppError::UnknownModel)?,
     };
 

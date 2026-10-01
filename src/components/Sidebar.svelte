@@ -29,6 +29,7 @@
     { id: "browse", label: "Find models", icon: "browse" },
     { id: "models", label: "My models", icon: "models" },
     { id: "chat", label: "Chat", icon: "chat" },
+    { id: "documents", label: "Documents", icon: "file" },
     { id: "settings", label: "Settings", icon: "settings" },
   ];
 

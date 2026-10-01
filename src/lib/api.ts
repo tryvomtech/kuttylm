@@ -6,6 +6,9 @@ import type {
   AppPaths,
   ChatSummary,
   DeviceInfo,
+  DocMeta,
+  DocProgress,
+  DocsStatus,
   DownloadEvent,
   EngineStatus,
   HfRepoDetail,
@@ -16,6 +19,7 @@ import type {
   ModelList,
   NetworkInfo,
   SavedChat,
+  SearchHit,
   Settings,
 } from "./types";
 
@@ -130,6 +134,35 @@ export function hfSearch(query: string, sort: HfSort, size: HfSize, cursor: stri
 /** Lists the versions of one repository. They can then be downloaded by id. */
 export function hfRepoFiles(repo: string): Promise<HfRepoDetail> {
   return invoke<HfRepoDetail>("hf_repo_files", { repo });
+}
+
+// ---- Documents ----
+
+export function getDocsStatus(): Promise<DocsStatus> {
+  return invoke<DocsStatus>("get_docs_status");
+}
+
+export function listDocuments(): Promise<DocMeta[]> {
+  return invoke<DocMeta[]>("list_documents");
+}
+
+/** Sends the file as raw bytes (fast for big files). Indexing goes on in the background. */
+export async function addDocument(file: File): Promise<DocMeta> {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  return invoke<DocMeta>("add_document", bytes, { headers: { "x-file-name": encodeURIComponent(file.name) } });
+}
+
+export function deleteDocument(id: string): Promise<void> {
+  return invoke("delete_document", { id });
+}
+
+/** The document parts that best match the question, best first. */
+export function searchDocuments(ids: string[], query: string, k: number): Promise<SearchHit[]> {
+  return invoke<SearchHit[]>("search_documents", { ids, query, k });
+}
+
+export function onDocumentProgress(handler: (p: DocProgress) => void): Promise<UnlistenFn> {
+  return listen<DocProgress>("document-progress", (e) => handler(e.payload));
 }
 
 /** Rust errors arrive as plain strings with a friendly message. */

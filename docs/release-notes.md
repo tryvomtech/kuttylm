@@ -5,6 +5,18 @@ Your chats stay on your computer. It works offline once a model is downloaded.
 KuttyLM is different: it is **lightweight**, it has **no commands — only buttons**, and it is
 **made for people who are not technical**. It even tells you which models will run well on your computer.
 
+## What's new in 0.4.0
+
+- **Chat with your documents:** open the new **Documents** menu and add PDF, Word (.docx), text or
+  Markdown files. In **Chat**, click **Documents** under the message box and choose them.
+  The AI answers from your documents and shows the sources, for example "Policy.pdf, page 2".
+- **Private:** your documents never leave your computer. The first time, KuttyLM asks you to download a
+  small document search model (80 MB). It then works offline.
+- **Tip:** bigger chat models give better answers from documents (for example Llama 3.2 3B).
+- **Settings:** the API card now has a clear "API" title.
+- **Menu:** under the model status you can now see if the API is on, its port, and if other devices
+  can connect.
+
 ## What's new in 0.3.0
 
 - **Chat memory bar:** shows how much of the model's memory (context window) the chat uses,

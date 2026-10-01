@@ -52,6 +52,11 @@ pub fn expand_home(text: &str) -> PathBuf {
     }
 }
 
+/// Documents for "chat with documents": text parts and their search vectors.
+pub fn documents_dir() -> PathBuf {
+    data_dir().join("documents")
+}
+
 /// Saved chats, one file per chat.
 pub fn chats_dir() -> PathBuf {
     data_dir().join("chats")

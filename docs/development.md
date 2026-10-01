@@ -142,9 +142,28 @@ Chat tests against a running engine:
 | Settings | `~/.config/kuttylm/settings.json` | `%APPDATA%\kuttylm\settings.json` | `~/Library/Application Support/kuttylm/settings.json` |
 | Offline copy of the model list | `~/.cache/kuttylm/models.json` | `%LOCALAPPDATA%\kuttylm\models.json` | `~/Library/Caches/kuttylm/models.json` |
 | Saved chats (one file per chat) | `~/.local/share/kuttylm/chats/` | `%LOCALAPPDATA%\kuttylm\chats\` | `~/Library/Application Support/kuttylm/chats/` |
+| Documents (one folder per document) | `~/.local/share/kuttylm/documents/` | `%LOCALAPPDATA%\kuttylm\documents\` | `~/Library/Application Support/kuttylm/documents/` |
 
 A model folder has the GGUF file(s), `download.json` while the download is not finished,
 and `model.json` when it is complete and checked. Unfinished files end in `.part`.
+
+A document folder has `meta.json` (name, state), `chunks.json` (the text in parts of about
+1,000 characters) and `vectors.bin` (one 768-number vector per part). The original file is not kept.
+
+## Chat with documents (how it works)
+
+1. The user downloads the **document search model** once (nomic-embed-text v1.5, Q4_K_M, 80 MB).
+   It is built into the app (`src-tauri/src/docs/embed.rs`), not in the online list, and has the tag
+   `embedding`: My models shows it without a Run button, and `start_model` refuses it.
+2. Adding a file: the text is read (`docs/parse.rs`: PDF per page, `.docx`, `.txt`, `.md`),
+   cut into overlapping parts (`docs/chunk.rs`) and turned into vectors by a **second llama-server**
+   (`--embedding`, processor only, random port and key). It starts when needed and stops after
+   5 idle minutes.
+3. In a chat: the question is turned into a vector, the closest parts of the chosen documents are
+   found (`docs/search.rs`, cosine similarity) and put in front of the question, only for that request
+   (`src/lib/rag.ts`). The saved chat keeps the plain question and the sources.
+
+Scanned PDFs (pictures only) have no text and are refused with a message.
 
 ## Using the API from other apps
 
@@ -183,7 +202,7 @@ Change the list by editing that file; `scripts/check-catalog.py` (also run by
 
 ```
 src/                     Svelte frontend
-  screens/               Home, Browse (Find models), MyModels, Chat, Settings
+  screens/               Home, Browse (Find models), MyModels, Chat, Documents, Settings
   components/            small UI parts (cards, progress, dialogs, Hugging Face search…)
   lib/                   API calls to Rust, stores, chat client, formatters
 src-tauri/src/
@@ -193,6 +212,7 @@ src-tauri/src/
   fit.rs                 the "fits my computer" formula (change it here)
   download/              downloads: resume, pause, cancel, sha256
   library.rs             downloaded models on disk, delete
+  docs/                  documents: read, cut into parts, search model (embeddings), search
   engine/                starts and stops llama-server
   settings.rs            user settings
 scripts/                 dev.sh, fetch-llama-server.sh (Ubuntu), fetch-llama-server.ps1 (Windows),

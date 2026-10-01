@@ -195,6 +195,14 @@ export interface StoredMessage {
   tokens_per_second?: number | null;
   stopped?: boolean;
   cut?: boolean;
+  sources?: Source[];
+}
+
+/** A document part an answer was based on. */
+export interface Source {
+  doc_id: string;
+  doc_name: string;
+  page: number | null;
 }
 
 export type TitleBy = "question" | "ai" | "user";
@@ -208,6 +216,8 @@ export interface SavedChat {
   model_id: string | null;
   model_name: string | null;
   messages: StoredMessage[];
+  /** Documents chosen for this chat. */
+  doc_ids?: string[];
 }
 
 export interface ChatSummary {
@@ -216,4 +226,47 @@ export interface ChatSummary {
   created_at: number;
   updated_at: number;
   model_name: string | null;
+}
+
+// ---- Documents (see src-tauri/src/docs) ----
+
+export interface DocsStatus {
+  /** The document search model is downloaded. */
+  model_ready: boolean;
+  model_id: string;
+  model_name: string;
+  model_size_bytes: number;
+}
+
+export type DocKind = "pdf" | "docx" | "text" | "markdown";
+export type DocStatus = "indexing" | "ready" | "failed";
+
+export interface DocMeta {
+  id: string;
+  name: string;
+  kind: DocKind;
+  size_bytes: number;
+  pages: number | null;
+  chunks: number;
+  created_at: number;
+  status: DocStatus;
+  error: string | null;
+  model_id: string | null;
+  dim: number;
+}
+
+export interface DocProgress {
+  id: string;
+  done: number;
+  total: number;
+  status: DocStatus;
+  error: string | null;
+}
+
+export interface SearchHit {
+  doc_id: string;
+  doc_name: string;
+  page: number | null;
+  text: string;
+  score: number;
 }
