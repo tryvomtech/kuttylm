@@ -116,6 +116,16 @@ export interface EngineStatus {
   started_at: number | null;
   /** Settings changed after the start; restart the model to use them. */
   needs_restart: boolean;
+  /** How other apps can reach the running model; null when nothing runs. */
+  api: ApiStatus | null;
+}
+
+export interface ApiStatus {
+  enabled: boolean;
+  port: number | null;
+  /** Other devices on the network can connect. */
+  lan: boolean;
+  key_required: boolean;
 }
 
 // ---- Settings (see src-tauri/src/settings.rs) ----

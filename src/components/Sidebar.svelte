@@ -2,12 +2,21 @@
   import { onMount } from "svelte";
   import { openUrl } from "@tauri-apps/plugin-opener";
   import Icon, { type IconName } from "./Icon.svelte";
-  import { getAppVersion } from "../lib/api";
+  import { getAppVersion, getNetworkInfo } from "../lib/api";
   import { engine } from "../lib/engine";
   import { currentScreen, theme, type Screen, type Theme } from "../lib/stores";
 
   const RELEASES = "https://github.com/tryvomtech/kuttylm/releases";
   let version = $state("");
+  let lanIp = $state<string | null>(null);
+
+  // The network address is only needed (and looked up) when other devices may connect.
+  $effect(() => {
+    if (!$engine.api?.lan) return;
+    getNetworkInfo()
+      .then((n) => (lanIp = n.lan_ip))
+      .catch(() => {});
+  });
 
   onMount(() => {
     getAppVersion()
@@ -54,21 +63,42 @@
     {/each}
   </ul>
 
-  <button class="engine" onclick={() => currentScreen.set("models")} title="Open My models">
-    {#if $engine.state === "running"}
-      <span class="dot on" aria-hidden="true"></span>
-      <span><strong>{$engine.model_name}</strong><br />is running</span>
-    {:else if $engine.state === "starting"}
-      <span class="dot wait" aria-hidden="true"></span>
-      <span>Loading {$engine.model_name}…</span>
-    {:else if $engine.state === "failed"}
-      <span class="dot bad" aria-hidden="true"></span>
-      <span>The model could not start</span>
-    {:else}
-      <span class="dot" aria-hidden="true"></span>
-      <span>No model running</span>
+  <div class="engine">
+    <button class="model" onclick={() => currentScreen.set("models")} title="Open My models">
+      {#if $engine.state === "running"}
+        <span class="dot on" aria-hidden="true"></span>
+        <span><strong>{$engine.model_name}</strong><br />is running</span>
+      {:else if $engine.state === "starting"}
+        <span class="dot wait" aria-hidden="true"></span>
+        <span>Loading {$engine.model_name}…</span>
+      {:else if $engine.state === "failed"}
+        <span class="dot bad" aria-hidden="true"></span>
+        <span>The model could not start</span>
+      {:else}
+        <span class="dot" aria-hidden="true"></span>
+        <span>No model running</span>
+      {/if}
+    </button>
+
+    {#if $engine.api}
+      {@const api = $engine.api}
+      <button class="api" onclick={() => currentScreen.set("settings")} title="Change in Settings">
+        <span class="k">API</span>
+        <span>{api.enabled ? `On · port ${api.port}` : "Off (only KuttyLM)"}</span>
+        {#if api.enabled}
+          <span class="k">Network</span>
+          <span class:warn={api.lan && !api.key_required}>
+            {api.lan ? `Other devices can connect${lanIp ? ` · ${lanIp}` : ""}` : "This computer only"}
+          </span>
+          <span class="k">Key</span>
+          <span class:warn={api.lan && !api.key_required}>{api.key_required ? "Required" : "Not needed"}</span>
+        {/if}
+      </button>
+      {#if $engine.needs_restart}
+        <p class="restart">Restart the model to use the new settings.</p>
+      {/if}
     {/if}
-  </button>
+  </div>
 
   <button class="nav-item theme" onclick={() => theme.set(nextTheme[$theme])} title="Change theme">
     <Icon name={themeIcon[$theme]} />
@@ -162,18 +192,63 @@
   }
 
   .engine {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
     margin: 0 0 8px;
-    padding: 10px;
     border: 1px solid var(--border);
     border-radius: 8px;
     background: var(--surface-2);
     color: var(--text-muted);
     font-size: 0.82rem;
-    text-align: left;
     line-height: 1.35;
+    overflow: hidden;
+  }
+
+  .engine button {
+    width: 100%;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+  }
+
+  .engine button:hover {
+    background: var(--border);
+  }
+
+  .model {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .api {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2px 8px;
+    padding: 8px 10px;
+    border-top: 1px solid var(--border) !important;
+    font-size: 0.75rem;
+  }
+
+  .api .k {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .api span {
+    overflow-wrap: anywhere;
+  }
+
+  .warn {
+    color: var(--warn);
+  }
+
+  .restart {
+    margin: 0;
+    padding: 0 10px 8px;
+    font-size: 0.75rem;
+    color: var(--warn);
   }
 
   .engine strong {

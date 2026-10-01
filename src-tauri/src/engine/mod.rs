@@ -69,6 +69,20 @@ pub struct EngineStatus {
     pub started_at: Option<u64>,
     /// Settings changed after the start. The model must restart to use them.
     pub needs_restart: bool,
+    /// How other apps can reach the running model (set while starting or running).
+    pub api: Option<ApiStatus>,
+}
+
+/// The API settings the running model was started with (not unsaved or newer settings).
+#[derive(Debug, Clone, Default, Serialize, PartialEq, Eq)]
+pub struct ApiStatus {
+    /// Other apps may use the model (fixed port). Off: only KuttyLM can.
+    pub enabled: bool,
+    pub port: Option<u16>,
+    /// Other devices on the network can connect.
+    pub lan: bool,
+    /// Other apps must send the user's key.
+    pub key_required: bool,
 }
 
 /// The settings that change how llama-server is started.
@@ -122,8 +136,14 @@ impl Engine {
     pub fn status(&self) -> EngineStatus {
         let inner = self.lock();
         let mut status = inner.status.clone();
-        status.needs_restart = matches!(status.state, RunState::Starting | RunState::Running)
-            && inner.launched_with.as_ref() != Some(&LaunchKey::from(&settings::current()));
+        let active = matches!(status.state, RunState::Starting | RunState::Running);
+        status.needs_restart = active && inner.launched_with.as_ref() != Some(&LaunchKey::from(&settings::current()));
+        status.api = inner.launched_with.as_ref().filter(|_| active).map(|k| ApiStatus {
+            enabled: k.api_enabled,
+            port: k.api_enabled.then_some(k.api_port),
+            lan: k.api_lan,
+            key_required: k.api_enabled && !k.api_key.is_empty(),
+        });
         status
     }
 
@@ -400,6 +420,26 @@ async fn watch_process(app: AppHandle, mut child: Child, exit_tx: watch::Sender<
 mod restart_tests {
     use super::LaunchKey;
     use crate::settings::{GpuSetting, Settings};
+
+    #[test]
+    fn api_status_follows_the_launch_settings() {
+        let engine = super::Engine::default();
+        assert_eq!(engine.status().api, None, "nothing runs");
+        {
+            let mut inner = engine.lock();
+            inner.status.state = super::RunState::Running;
+            inner.launched_with = Some(LaunchKey::from(&Settings {
+                api_enabled: true,
+                api_port: 9000,
+                api_lan: true,
+                api_key: "k".into(),
+                ..Settings::default()
+            }));
+        }
+        let api = engine.status().api.unwrap();
+        assert!(api.enabled && api.lan && api.key_required);
+        assert_eq!(api.port, Some(9000));
+    }
 
     #[test]
     fn only_relevant_changes_need_a_restart() {

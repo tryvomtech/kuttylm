@@ -15,6 +15,7 @@ const STOPPED: EngineStatus = {
   log_tail: [],
   started_at: null,
   needs_restart: false,
+  api: null,
 };
 
 export const engine = writable<EngineStatus>(STOPPED);
